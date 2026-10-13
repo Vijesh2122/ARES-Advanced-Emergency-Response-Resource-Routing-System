@@ -1,0 +1,28 @@
+# Build output
+build/
+*.exe
+*.o
+*.a
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+CTestTestfile.cmake
+_deps/
+install_manifest.txt
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Data (keep sample files, ignore generated)
+data/*.bin
+data/*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
