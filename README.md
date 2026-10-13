@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ARES — Advanced Emergency Response & Resource Routing System
 
 > **B.Tech Data Structures in C Project** | Phase 1 of 6
@@ -162,3 +163,7 @@ Expected output:
 
 B.Tech Computer Science — Data Structures in C  
 ARES is an educational project. MIT Licence.
+=======
+# ARES-Advanced-Emergency-Response-Resource-Routing-System
+🚨 ARES — Advanced Emergency Response &amp; Resource Routing System  🚨 ARES is a C-based Data Structures project simulating emergency management, resource allocation, priority-based dispatch, and shortest-path routing using graphs and algorithms.🛠️ Tech Stack: C | DSA | Graph Algorithms | Optimization  🚧 Status: In Development
+>>>>>>> 03a7fb64baa8d84bc836584e1a9abb4a0548ff85
