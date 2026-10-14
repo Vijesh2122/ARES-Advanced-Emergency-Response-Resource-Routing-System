@@ -62,7 +62,7 @@ double emergency_priority_score(const Emergency *e) {
 
     /* Affected count: clamp to [0, 1000] then normalise */
     double aff_norm = (double)(e->affected_count > 1000 ? 1000
-                                                        : e->affected_count)
+                                : (e->affected_count < 0 ? 0 : e->affected_count))
                       / 1000.0;
 
     /* Risk: from type table */
@@ -73,6 +73,7 @@ double emergency_priority_score(const Emergency *e) {
     /* Wait time: clamp to 1 hour = 3600 s */
     time_t now  = time(NULL);
     double wait = (double)(now - e->reported_at);
+    if (wait < 0.0) wait = 0.0;
     double wait_norm = (wait > 3600.0 ? 3600.0 : wait) / 3600.0;
 
     double score = 100.0 * (PW_SEVERITY * sev_norm
@@ -110,12 +111,17 @@ AresStatus emergency_add(Emergency *e) {
     if (!e)                    return ARES_ERR_NULL;
     if (g_count >= MAX_EMERGENCIES) return ARES_ERR_OVERFLOW;
     if (e->id[0] == '\0')      return ARES_ERR_INVALID;
+    if (e->type < TYPE_FIRE || e->type >= TYPE_COUNT ||
+        e->severity < SEV_LOW || e->severity > SEV_CRITICAL ||
+        e->status < STATUS_PENDING || e->status > STATUS_CANCELLED ||
+        e->node_id < NODE_INVALID || e->node_id >= MAX_GRAPH_NODES ||
+        e->affected_count < 0) return ARES_ERR_INVALID;
     if (find_idx(e->id) >= 0)  return ARES_ERR_DUPLICATE;
 
-    /* Compute priority before storing */
-    e->priority_score = emergency_priority_score(e);
     if (e->reported_at == 0)  e->reported_at = time(NULL);
-    e->updated_at = e->reported_at;
+    if (e->updated_at == 0) e->updated_at = e->reported_at;
+    /* Compute after normalising the timestamp. */
+    e->priority_score = emergency_priority_score(e);
 
     g_db[g_count++] = *e;
     return ARES_OK;
@@ -133,6 +139,8 @@ AresStatus emergency_update_status(const char *id,
                                    RecordStatus new_status,
                                    const char  *new_desc) {
     if (!id) return ARES_ERR_NULL;
+    if (new_status < STATUS_PENDING || new_status > STATUS_CANCELLED)
+        return ARES_ERR_INVALID;
     int idx = find_idx(id);
     if (idx < 0) return ARES_ERR_NOT_FOUND;
 
@@ -148,6 +156,7 @@ AresStatus emergency_update_status(const char *id,
 AresStatus emergency_assign_resource(const char *emergency_id,
                                      const char *resource_id) {
     if (!emergency_id || !resource_id) return ARES_ERR_NULL;
+    if (resource_id[0] == '\0') return ARES_ERR_INVALID;
     int idx = find_idx(emergency_id);
     if (idx < 0) return ARES_ERR_NOT_FOUND;
 

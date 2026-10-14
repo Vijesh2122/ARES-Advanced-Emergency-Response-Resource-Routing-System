@@ -1,35 +1,34 @@
-# ARES Phase Roadmap & Design Notes
+# ARES Roadmap
 
-## Phase 2 — Doubly-Linked List
-- Replace `ares_db[]` array with `DLNode` linked list
-- Add `list.h` / `list.c` — generic doubly-linked list
-- O(1) head/tail insert, O(1) delete given pointer
-- Keep `emergency.h` API unchanged
+## Implemented in v3.0
 
-## Phase 3 — Stack + Queue
-- `stack.h` / `stack.c` — action-history stack for undo/redo
-- `queue.h` / `queue.c` — FIFO circular queue for dispatch order
-- Operations: push/pop (stack), enqueue/dequeue (queue)
+- Emergency and resource command workflows.
+- Capability-aware manual dispatch and safe mission completion.
+- Weighted 12-node demo city graph.
+- Dijkstra shortest-path route planning and ETA calculation.
+- Smart nearest-compatible-resource auto-dispatch.
+- Binary max-heap dashboard for live incident triage.
+- Versioned local binary persistence.
+- Automated unit tests for registry, graph, and heap behaviour.
 
-## Phase 4 — Min-Heap + Hash Map
-- `heap.h` / `heap.c` — priority queue ordered by severity
-- `hashmap.h` / `hashmap.c` — O(1) ID → record pointer lookup
-- Triage: extract-min gives highest-severity pending incident first
+## Next high-value enhancements
 
-## Phase 5 — Graph Algorithms
-- `graph.h` / `graph.c` — adjacency list for location graph
-- BFS: nearest available resource
-- DFS: full connectivity check
-- Dijkstra: shortest-path routing for resource dispatch
+### 1. Linked-list registry + hash index
 
-## Phase 6 — Persistence + Dashboard
-- CSV / binary file save-load in `data/`
-- Terminal dashboard: real-time stats, heat-map by severity
-- Resource allocation engine
+Replace fixed arrays with doubly-linked nodes and keep an ID hash index. This makes the original data-structures focus explicit while preserving the public APIs.
 
----
+### 2. Undo/redo and dispatch queue
 
-## Key Invariant (maintain through all phases)
+Add a stack of immutable action snapshots for undo/redo, plus a circular queue for incidents awaiting manual operator review.
 
-> `include/emergency.h` is the *only* public contract.
-> Internal storage may change; callers (main.c, ui.c) must not care.
+### 3. Dynamic city operations
+
+Let an operator add nodes and roads, close roads, and update resource movement while preserving route recalculation.
+
+### 4. Better routing performance
+
+Move from the educational adjacency matrix implementation to an adjacency list and min-heap Dijkstra implementation. The target complexity is O((V+E) log V).
+
+### 5. Presentation package
+
+Add screenshots or a demo recording, sample data, a one-page report, and an architecture diagram to make the GitHub/review submission complete.

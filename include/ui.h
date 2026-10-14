@@ -40,6 +40,7 @@ double ui_read_double(const char *prompt, double lo, double hi);
 void ui_show_main_menu(void);
 void ui_show_emergency_menu(void);
 void ui_show_resource_menu(void);
+void ui_show_routing_menu(void);
 
 /* --- Wizard helpers --------------------------------------------------- */
 /** Interactively populate an Emergency struct from user input. */

@@ -19,6 +19,9 @@ include_directories(include)
 add_library(ares_core STATIC
     src/emergency/emergency.c
     src/resource/resource.c
+    src/routing/graph.c
+    src/storage/persistence.c
+    src/structures/priority_queue.c
     src/ui/ui.c
     src/ui/utils.c
 )
@@ -38,6 +41,10 @@ add_test(NAME EmergencyTests COMMAND test_emergency)
 add_executable(test_resource tests/test_resource.c)
 target_link_libraries(test_resource ares_core)
 add_test(NAME ResourceTests COMMAND test_resource)
+
+add_executable(test_advanced tests/test_advanced.c)
+target_link_libraries(test_advanced ares_core)
+add_test(NAME AdvancedTests COMMAND test_advanced)
 
 # ── Install ───────────────────────────────────────────────────────────────
 install(TARGETS ares DESTINATION bin)

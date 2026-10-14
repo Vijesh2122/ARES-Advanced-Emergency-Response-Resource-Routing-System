@@ -66,6 +66,12 @@ AresStatus resource_add(const Resource *r) {
     if (!r)                   return ARES_ERR_NULL;
     if (g_count >= MAX_RESOURCES) return ARES_ERR_OVERFLOW;
     if (r->id[0] == '\0')     return ARES_ERR_INVALID;
+    if (r->type < RES_AMBULANCE || r->type >= RES_TYPE_COUNT ||
+        r->status < RES_STATUS_AVAILABLE || r->status > RES_STATUS_RETURNING ||
+        r->base_node < NODE_INVALID || r->base_node >= MAX_GRAPH_NODES ||
+        r->current_node < NODE_INVALID || r->current_node >= MAX_GRAPH_NODES ||
+        r->capacity < 0 || r->current_load < 0 || r->current_load > r->capacity)
+        return ARES_ERR_INVALID;
     if (find_idx(r->id) >= 0) return ARES_ERR_DUPLICATE;
 
     g_res[g_count]              = *r;
@@ -84,8 +90,13 @@ AresStatus resource_find_by_id(const char *id, Resource *out) {
 
 AresStatus resource_set_status(const char *id, ResourceStatus new_status) {
     if (!id) return ARES_ERR_NULL;
+    if (new_status < RES_STATUS_AVAILABLE || new_status > RES_STATUS_RETURNING)
+        return ARES_ERR_INVALID;
     int idx = find_idx(id);
     if (idx < 0) return ARES_ERR_NOT_FOUND;
+    /* Dispatch is a controlled transition: use resource_dispatch(). */
+    if (new_status == RES_STATUS_DISPATCHED ||
+        g_res[idx].assigned_emergency_id[0] != '\0') return ARES_ERR_INVALID;
     g_res[idx].status       = new_status;
     g_res[idx].last_updated = time(NULL);
     return ARES_OK;
@@ -93,6 +104,7 @@ AresStatus resource_set_status(const char *id, ResourceStatus new_status) {
 
 AresStatus resource_set_node(const char *id, NodeID new_node) {
     if (!id) return ARES_ERR_NULL;
+    if (new_node < NODE_INVALID || new_node >= MAX_GRAPH_NODES) return ARES_ERR_INVALID;
     int idx = find_idx(id);
     if (idx < 0) return ARES_ERR_NOT_FOUND;
     g_res[idx].current_node = new_node;
@@ -103,6 +115,7 @@ AresStatus resource_set_node(const char *id, NodeID new_node) {
 AresStatus resource_dispatch(const char *resource_id,
                              const char *emergency_id) {
     if (!resource_id || !emergency_id) return ARES_ERR_NULL;
+    if (emergency_id[0] == '\0') return ARES_ERR_INVALID;
     int idx = find_idx(resource_id);
     if (idx < 0) return ARES_ERR_NOT_FOUND;
     if (g_res[idx].status != RES_STATUS_AVAILABLE) return ARES_ERR_INVALID;
@@ -118,6 +131,7 @@ AresStatus resource_complete_mission(const char *resource_id) {
     if (!resource_id) return ARES_ERR_NULL;
     int idx = find_idx(resource_id);
     if (idx < 0) return ARES_ERR_NOT_FOUND;
+    if (g_res[idx].status != RES_STATUS_DISPATCHED) return ARES_ERR_INVALID;
 
     g_res[idx].status = RES_STATUS_AVAILABLE;
     g_res[idx].assigned_emergency_id[0] = '\0';
@@ -144,6 +158,8 @@ AresStatus resource_delete(const char *id) {
 int resource_find_available(ResourceType type,
                             char        out_ids[][MAX_ID_LEN],
                             int          max_results) {
+    if (!out_ids || max_results <= 0 || type < RES_AMBULANCE || type >= RES_TYPE_COUNT)
+        return 0;
     int found = 0;
     for (int i = 0; i < g_count && found < max_results; i++) {
         if (g_res[i].type   == type &&

@@ -39,7 +39,7 @@ void ui_print_banner(void) {
     printf("\n");
     ui_print_separator();
     printf(COL_BOLD COL_RED   "  ARES : Emergency Response & Resource Routing\n" COL_RESET);
-    printf(COL_GRAY           "  Version %s | Anna University IT\n" COL_RESET, ARES_VERSION);
+    printf(COL_GRAY           "  Version %s | Smart Dispatch Command Console\n" COL_RESET, ARES_VERSION);
     ui_print_separator();
 }
 
@@ -124,7 +124,9 @@ void ui_show_main_menu(void) {
     ui_print_header("MAIN MENU");
     printf("  " COL_GREEN  "[1]" COL_RESET " Emergency Management\n");
     printf("  " COL_CYAN   "[2]" COL_RESET " Resource Management\n");
-    printf("  " COL_YELLOW "[3]" COL_RESET " System Statistics\n");
+    printf("  " COL_YELLOW "[3]" COL_RESET " Live Command Dashboard\n");
+    printf("  " COL_MAGENTA "[4]" COL_RESET " Smart Dispatch & Route Planner\n");
+    printf("  " COL_CYAN   "[5]" COL_RESET " System Statistics\n");
     printf("  " COL_RED    "[0]" COL_RESET " Exit ARES\n");
     ui_print_separator();
 }
@@ -158,6 +160,17 @@ void ui_show_resource_menu(void) {
     ui_print_separator();
 }
 
+void ui_show_routing_menu(void) {
+    printf("\n");
+    ui_print_header("SMART DISPATCH & ROUTE PLANNER");
+    printf("  " COL_CYAN    "[1]" COL_RESET " View City Network\n");
+    printf("  " COL_CYAN    "[2]" COL_RESET " Find Shortest Route (Dijkstra)\n");
+    printf("  " COL_GREEN   "[3]" COL_RESET " Auto-Dispatch Nearest Compatible Unit\n");
+    printf("  " COL_YELLOW  "[4]" COL_RESET " Open Live Priority Dashboard\n");
+    printf("  " COL_GRAY    "[0]" COL_RESET " Back to Main Menu\n");
+    ui_print_separator();
+}
+
 /* --- Wizards ---------------------------------------------------------- */
 
 void ui_fill_new_emergency(Emergency *e) {
@@ -167,7 +180,7 @@ void ui_fill_new_emergency(Emergency *e) {
     ui_read_string("  Location Label   : ", e->location_label, MAX_LABEL_LEN);
     ui_read_string("  Description      : ", e->description,   MAX_DESC_LEN);
 
-    e->node_id = ui_read_int("  City Node ID     : ", 0, MAX_GRAPH_NODES - 1);
+    e->node_id = ui_read_int("  City Node ID [0-11]: ", 0, 11);
 
     printf("\n  Emergency Type:\n");
     printf("    [0] Fire   [1] Medical  [2] Flood   [3] Accident\n");
@@ -193,7 +206,7 @@ void ui_fill_new_resource(Resource *r) {
 
     ui_read_string("  Resource Name    : ", r->name, MAX_NAME_LEN);
     ui_read_string("  Base Location    : ", r->base_location, MAX_LABEL_LEN);
-    r->base_node    = ui_read_int("  Base Node ID     : ", 0, MAX_GRAPH_NODES - 1);
+    r->base_node    = ui_read_int("  Base Node ID [0-11]: ", 0, 11);
     r->current_node = r->base_node;
 
     printf("\n  Resource Type:\n");

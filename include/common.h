@@ -14,8 +14,8 @@
 #include <stdlib.h>
 
 /* --- Version ---------------------------------------------------------- */
-#define ARES_VERSION        "2.0.0-phase2"
-#define ARES_VERSION_MAJOR  2
+#define ARES_VERSION        "3.0.0-smart-dispatch"
+#define ARES_VERSION_MAJOR  3
 #define ARES_VERSION_MINOR  0
 #define ARES_VERSION_PATCH  0
 

@@ -26,12 +26,18 @@ BLDDIR   := build
 APP_SRCS := src/main.c \
             src/emergency/emergency.c \
             src/resource/resource.c \
+            src/routing/graph.c \
+            src/storage/persistence.c \
+            src/structures/priority_queue.c \
             src/ui/ui.c \
             src/ui/utils.c
 
 # Library sources (everything except main.c) for test linking
 LIB_SRCS := src/emergency/emergency.c \
             src/resource/resource.c \
+            src/routing/graph.c \
+            src/storage/persistence.c \
+            src/structures/priority_queue.c \
             src/ui/utils.c
 
 TARGET   := $(BLDDIR)/ares.exe
@@ -56,6 +62,7 @@ release: | $(BLDDIR)
 # ── Tests ────────────────────────────────────────────────────────────────
 TEST_EMG := $(BLDDIR)/test_emergency.exe
 TEST_RES := $(BLDDIR)/test_resource.exe
+TEST_ADV := $(BLDDIR)/test_advanced.exe
 
 .PHONY: test_emg
 test_emg: $(TEST_EMG)
@@ -73,8 +80,19 @@ test_res: $(TEST_RES)
 $(TEST_RES): tests/test_resource.c src/resource/resource.c src/ui/utils.c | $(BLDDIR)
 	$(CC) $(STD) $(WARN) $(IFLAGS) $(DBGFLAGS) $(LIBS) $^ -o $@
 
+.PHONY: test_adv
+test_adv: $(TEST_ADV)
+	@echo ""; @echo "── Advanced Algorithm Tests ──"
+	./$(TEST_ADV)
+
+$(TEST_ADV): tests/test_advanced.c $(LIB_SRCS) | $(BLDDIR)
+	$(CC) $(STD) $(WARN) $(IFLAGS) $(DBGFLAGS) $(LIBS) $^ -o $@
+
 .PHONY: tests
-tests: test_emg test_res
+tests: test_emg test_res test_adv
+
+.PHONY: test
+test: tests
 	@echo ""; @echo "All test suites complete."
 
 # ── Clean ─────────────────────────────────────────────────────────────────

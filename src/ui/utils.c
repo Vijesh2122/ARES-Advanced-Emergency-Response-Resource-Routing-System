@@ -46,8 +46,11 @@ void generate_emergency_id(char *buf, int seq) {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     /* "INCYYYYMMDDnnnn" -- fits in MAX_ID_LEN=24 */
-    snprintf(buf, MAX_ID_LEN, "INC%04d%02d%02d%04d",
-             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, seq % 10000);
+    if (!t) { safe_strncpy(buf, "INC000000000000", MAX_ID_LEN); return; }
+    unsigned int year = (unsigned int)(t->tm_year + 1900) % 10000U;
+    unsigned int serial = (unsigned int)seq % 10000U;
+    snprintf(buf, MAX_ID_LEN, "INC%04u%02u%02u%04u", year,
+             (unsigned int)(t->tm_mon + 1), (unsigned int)t->tm_mday, serial);
 }
 
 void generate_resource_id(char *buf, ResourceType type, int seq) {

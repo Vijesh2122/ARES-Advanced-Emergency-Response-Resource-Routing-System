@@ -23,12 +23,21 @@
 #include "types.h"
 #include "emergency.h"
 #include "resource.h"
+#include "graph.h"
+#include "persistence.h"
+#include "priority_queue.h"
 #include "ui.h"
 #include "utils.h"
 
 /* --- Sequence counters for ID generation ------------------------------- */
 static int g_emg_seq = 1;   /* emergency ID counter */
 static int g_res_seq = 1;   /* resource  ID counter */
+static const char *STATE_FILE = "data/ares_state.bin";
+
+static void save_state_quietly(void) {
+    if (persistence_save(STATE_FILE) != ARES_OK)
+        printf(COL_YELLOW "  [!] State could not be saved.\n" COL_RESET);
+}
 
 /* =======================================================================
  * Emergency submenu handlers
@@ -38,7 +47,8 @@ static void emg_add(void) {
     Emergency e;
     memset(&e, 0, sizeof(e));
     ui_fill_new_emergency(&e);
-    generate_emergency_id(e.id, g_emg_seq++);
+    do { generate_emergency_id(e.id, g_emg_seq++); }
+    while (emergency_find_by_id(e.id, &(Emergency){0}) == ARES_OK);
 
     AresStatus st = emergency_add(&e);
     switch (st) {
@@ -114,6 +124,16 @@ static void emg_delete(void) {
     ui_read_string("\n  Emergency ID to delete: ", id, MAX_ID_LEN);
     str_toupper(id);
 
+    Emergency existing;
+    if (emergency_find_by_id(id, &existing) != ARES_OK) {
+        printf(COL_RED "\n  [!] Not found: %s\n" COL_RESET, id);
+        return;
+    }
+    if (existing.assigned_res_id[0]) {
+        printf(COL_RED "\n  [!] Complete or cancel the linked mission before deleting this emergency.\n" COL_RESET);
+        return;
+    }
+
     char confirm[8];
     printf(COL_RED "  WARNING: irreversible.\n" COL_RESET);
     ui_read_string("  Type YES to confirm: ", confirm, sizeof(confirm));
@@ -154,6 +174,7 @@ static void emergency_menu_loop(void) {
             default: printf(COL_RED "  Invalid.\n" COL_RESET);
         }
         if (ch != 0) {
+            save_state_quietly();
             printf("\n");
             ui_read_string("  Press Enter to continue...", _pause, sizeof(_pause));
         }
@@ -168,7 +189,8 @@ static void res_add(void) {
     Resource r;
     memset(&r, 0, sizeof(r));
     ui_fill_new_resource(&r);
-    generate_resource_id(r.id, r.type, g_res_seq++);
+    do { generate_resource_id(r.id, r.type, g_res_seq++); }
+    while (resource_find_by_id(r.id, &(Resource){0}) == ARES_OK);
 
     AresStatus st = resource_add(&r);
     switch (st) {
@@ -207,13 +229,13 @@ static void res_update_status(void) {
     str_toupper(id);
 
     printf("  New Status:\n");
-    printf("    [0] Available  [1] Dispatched  [2] Unavailable  [3] Returning\n");
+    printf("    [0] Available  [2] Unavailable  [3] Returning\n");
     int ns = ui_read_int("  Status [0-3]: ", 0, 3);
 
     if (resource_set_status(id, (ResourceStatus)ns) == ARES_OK)
         printf(COL_GREEN "\n  [OK] Status updated.\n" COL_RESET);
     else
-        printf(COL_RED "\n  [!] Not found: %s\n" COL_RESET, id);
+        printf(COL_RED "\n  [!] Status change rejected for %s.\n" COL_RESET, id);
 }
 
 static void res_dispatch(void) {
@@ -230,6 +252,16 @@ static void res_dispatch(void) {
         return;
     }
 
+    Resource candidate;
+    if (resource_find_by_id(rid, &candidate) != ARES_OK) {
+        printf(COL_RED "\n  [!] Resource not found: %s\n" COL_RESET, rid);
+        return;
+    }
+    if (!resource_is_compatible(&candidate, emg.type)) {
+        printf(COL_RED "\n  [!] %s is not compatible with a %s emergency.\n"
+               COL_RESET, rid, type_to_str(emg.type));
+        return;
+    }
     AresStatus st = resource_dispatch(rid, eid);
     if (st == ARES_OK) {
         emergency_assign_resource(eid, rid);
@@ -270,6 +302,13 @@ static void res_delete(void) {
     char id[MAX_ID_LEN];
     ui_read_string("\n  Resource ID to remove: ", id, MAX_ID_LEN);
     str_toupper(id);
+    Resource existing;
+    if (resource_find_by_id(id, &existing) != ARES_OK) {
+        printf(COL_RED "\n  [!] Not found.\n" COL_RESET); return;
+    }
+    if (existing.assigned_emergency_id[0]) {
+        printf(COL_RED "\n  [!] Complete its active mission before removing this resource.\n" COL_RESET); return;
+    }
     char confirm[8];
     ui_read_string("  Type YES to confirm: ", confirm, sizeof(confirm));
     str_toupper(confirm);
@@ -309,10 +348,118 @@ static void resource_menu_loop(void) {
             default: printf(COL_RED "  Invalid.\n" COL_RESET);
         }
         if (ch != 0) {
+            save_state_quietly();
             printf("\n");
             ui_read_string("  Press Enter to continue...", _pause, sizeof(_pause));
         }
     } while (ch != 0);
+}
+
+/* =======================================================================
+ * Smart dispatch, routing and dashboard
+ * ======================================================================= */
+
+typedef struct {
+    Emergency incident;
+    Resource best;
+    AresRoute route;
+    bool found;
+} DispatchSelection;
+
+static bool choose_nearest_compatible(const Resource *resource, void *data) {
+    DispatchSelection *selection = data;
+    if (resource->status != RES_STATUS_AVAILABLE ||
+        !resource_is_compatible(resource, selection->incident.type)) return true;
+    AresRoute route;
+    if (graph_shortest_path(resource->current_node, selection->incident.node_id, &route) != ARES_OK)
+        return true;
+    if (!selection->found || route.total_cost < selection->route.total_cost) {
+        selection->best = *resource;
+        selection->route = route;
+        selection->found = true;
+    }
+    return true;
+}
+
+static void auto_dispatch(void) {
+    char id[MAX_ID_LEN];
+    ui_read_string("\n  Pending emergency ID: ", id, MAX_ID_LEN);
+    str_toupper(id);
+    DispatchSelection selection;
+    memset(&selection, 0, sizeof(selection));
+    if (emergency_find_by_id(id, &selection.incident) != ARES_OK) {
+        printf(COL_RED "  [!] Emergency not found.\n" COL_RESET); return;
+    }
+    if (selection.incident.status != STATUS_PENDING) {
+        printf(COL_YELLOW "  [!] Auto-dispatch only accepts pending emergencies.\n" COL_RESET); return;
+    }
+    resource_foreach(choose_nearest_compatible, &selection);
+    if (!selection.found) {
+        printf(COL_RED "  [!] No compatible available resource has a reachable route.\n" COL_RESET); return;
+    }
+    if (resource_dispatch(selection.best.id, id) != ARES_OK ||
+        emergency_assign_resource(id, selection.best.id) != ARES_OK) {
+        printf(COL_RED "  [!] Dispatch transaction failed.\n" COL_RESET); return;
+    }
+    printf(COL_GREEN "\n  [OK] SMART DISPATCH CONFIRMED\n" COL_RESET);
+    printf("  Selected: %s (%s) | ETA: %d minutes\n", selection.best.id,
+           resource_type_to_str(selection.best.type), selection.route.total_cost);
+    graph_print_route(&selection.route);
+}
+
+typedef struct { int pending, active, resolved, available, deployed; } DashboardStats;
+static bool count_emergency(const Emergency *e, void *data) {
+    DashboardStats *stats = data;
+    if (e->status == STATUS_PENDING) ++stats->pending;
+    else if (e->status == STATUS_ACTIVE) ++stats->active;
+    else if (e->status == STATUS_RESOLVED) ++stats->resolved;
+    return true;
+}
+static bool count_resource(const Resource *r, void *data) {
+    DashboardStats *stats = data;
+    if (r->status == RES_STATUS_AVAILABLE) ++stats->available;
+    else if (r->status == RES_STATUS_DISPATCHED) ++stats->deployed;
+    return true;
+}
+
+static void show_dashboard(void) {
+    DashboardStats stats = {0};
+    emergency_foreach(count_emergency, &stats);
+    resource_foreach(count_resource, &stats);
+    ui_print_header("ARES COMMAND DASHBOARD");
+    printf(COL_RED "  INCIDENTS  " COL_RESET "Pending: %d | Active: %d | Resolved: %d\n",
+           stats.pending, stats.active, stats.resolved);
+    printf(COL_GREEN "  FLEET      " COL_RESET "Available: %d | Deployed: %d | City nodes: %d\n\n",
+           stats.available, stats.deployed, graph_node_count());
+    EmergencyHeap heap;
+    emergency_heap_build_pending(&heap);
+    printf(COL_BOLD "  LIVE PRIORITY QUEUE (max-heap)\n" COL_RESET);
+    if (heap.size == 0) printf("  No active incidents.\n");
+    for (int rank = 1; rank <= 5 && heap.size; ++rank) {
+        Emergency top;
+        emergency_heap_pop(&heap, &top);
+        printf("  #%d %-18s %-9s score %5.1f | %s\n", rank, top.id,
+               severity_to_str(top.severity), top.priority_score, top.location_label);
+    }
+}
+
+static void routing_menu_loop(void) {
+    int choice;
+    char pause[4];
+    do {
+        ui_show_routing_menu();
+        choice = ui_read_int("  Choice: ", 0, 4);
+        if (choice == 1) graph_print_network();
+        else if (choice == 2) {
+            NodeID from = ui_read_int("  Start node [0-11]: ", 0, MAX_GRAPH_NODES - 1);
+            NodeID to = ui_read_int("  Destination node [0-11]: ", 0, MAX_GRAPH_NODES - 1);
+            AresRoute route;
+            if (graph_shortest_path(from, to, &route) == ARES_OK) graph_print_route(&route);
+            else printf(COL_RED "  [!] A valid route requires active city nodes.\n" COL_RESET);
+        } else if (choice == 3) auto_dispatch();
+        else if (choice == 4) show_dashboard();
+        if (choice != 0) { save_state_quietly(); printf("\n"); ui_read_string("  Press Enter to continue...", pause, sizeof(pause)); }
+    } while (choice != 0);
 }
 
 /* =======================================================================
@@ -322,17 +469,16 @@ static void resource_menu_loop(void) {
 static void show_stats(void) {
     ui_print_header("SYSTEM STATISTICS");
     printf("  ARES Version      : %s\n", ARES_VERSION);
-    printf("  Current Phase     : 2 -- Core Models + Resource Management\n");
+    printf("  Current Phase     : 4 -- Smart Dispatch + Routing\n");
     printf("\n");
     printf("  Emergencies       : %d / %d\n",
            emergency_db_count(), MAX_EMERGENCIES);
     printf("  Resources         : %d / %d\n",
            resource_db_count(),  MAX_RESOURCES);
     printf("\n");
-    printf("  Active algorithms : Flat array (O(n) search)\n");
-    printf("  Next phase (3)    : Linear data structures\n");
-    printf("      SLL, DLL, CLL, Stack, Queue, Deque\n");
-    printf("  Future            : Heap triage, Hash lookup, Dijkstra routing\n");
+    printf("  Active algorithms : Max-Heap priority queue + Dijkstra routing\n");
+    printf("  Storage           : Versioned binary snapshots (local)\n");
+    printf("  Next evolution    : Linked-list storage, hash indexes, undo/redo\n");
 }
 
 /* =======================================================================
@@ -343,20 +489,32 @@ int main(void) {
     /* Initialise subsystems */
     emergency_db_init();
     resource_db_init();
+    graph_load_demo_city();
+    bool restored = false;
+    AresStatus load_status = persistence_load(STATE_FILE, &restored);
 
     ui_clear_screen();
     ui_print_banner();
-    printf(COL_GREEN "  All subsystems initialised.\n" COL_RESET);
+    if (load_status == ARES_OK)
+        printf(COL_GREEN "  All subsystems initialised%s.\n" COL_RESET,
+               restored ? "; previous command state restored" : "");
+    else
+        printf(COL_YELLOW "  Subsystems initialised; saved state could not be read.\n" COL_RESET);
 
     int choice;
     char _pause[4];
     do {
         ui_show_main_menu();
-        choice = ui_read_int("  Enter choice: ", 0, 3);
+        choice = ui_read_int("  Enter choice: ", 0, 5);
         switch (choice) {
             case 1: emergency_menu_loop(); break;
             case 2: resource_menu_loop();  break;
-            case 3:
+            case 3: show_dashboard();
+                printf("\n");
+                ui_read_string("  Press Enter to continue...", _pause, sizeof(_pause));
+                break;
+            case 4: routing_menu_loop(); break;
+            case 5:
                 show_stats();
                 printf("\n");
                 ui_read_string("  Press Enter to continue...", _pause, sizeof(_pause));
@@ -370,6 +528,8 @@ int main(void) {
                 printf(COL_RED "  Invalid option.\n" COL_RESET);
         }
     } while (choice != 0);
+
+    save_state_quietly();
 
     return EXIT_SUCCESS;
 }

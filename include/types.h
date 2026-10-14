@@ -22,7 +22,7 @@
 #include <time.h>
 
 /* --- String-length constants ------------------------------------------ */
-#define ARES_VERSION        "2.0.0-phase2"
+#define ARES_VERSION        "3.0.0-smart-dispatch"
 #define MAX_ID_LEN          24    /* e.g. "INC20261013-0001\0"       */
 #define MAX_NAME_LEN        64
 #define MAX_LOCATION_LEN    128
