@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARES — Tactical Emergency Command & Spatial GIS Map</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="cyber-hud">
+
+  <!-- TOP HEADER / TELEMETRY STATUS BAR -->
+  <header class="hud-header">
+    <div class="brand-group">
+      <div class="radar-logo-pulse">
+        <span class="pulse-ring"></span>
+        <span class="core-dot"></span>
+      </div>
+      <div class="brand-titles">
+        <div class="main-title">ARES // TACTICAL COMMAND CENTER</div>
+        <div class="sub-title">EMERGENCY RESPONSE &amp; RESOURCE ROUTING SYSTEM &bull; v3.2 PRO</div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry KPI Pills -->
+    <div class="kpi-group">
+      <div class="kpi-card" id="kpi-incidents">
+        <div class="kpi-label">ACTIVE INCIDENTS</div>
+        <div class="kpi-value text-red" id="kpi-incidents-val">0</div>
+        <div class="kpi-sub" id="kpi-pending-val">0 pending triage</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-fleet">
+        <div class="kpi-label">FLEET READINESS</div>
+        <div class="kpi-value text-cyan" id="kpi-fleet-val">0 / 0</div>
+        <div class="kpi-sub" id="kpi-deployed-val">0 deployed</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-clock">
+        <div class="kpi-label">SIMULATION CLOCK</div>
+        <div class="kpi-value text-amber" id="sim-clock-display">00:00:00</div>
+        <div class="kpi-sub" id="sim-clock-offset">+0m elapsed</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-backend">
+        <div class="kpi-label">C ENGINE TELEMETRY</div>
+        <div class="kpi-value text-green" id="sync-status-indicator">ONLINE</div>
+        <div class="kpi-sub" id="sync-timestamp">Connected</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="header-actions">
+      <button class="btn btn-sm btn-outline" id="btn-audio-toggle" title="Toggle Tactical Audio Effects">
+        <span class="icon" id="audio-icon">🔊</span> <span id="audio-label">AUDIO: ON</span>
+      </button>
+      <button class="btn btn-sm btn-outline" id="btn-sync-reload" title="Reload live telemetry from ARES C backend">
+        <span class="icon">🔄</span> SYNC C ENGINE
+      </button>
+      <button class="btn btn-sm btn-primary" id="btn-open-report-modal">
+        <span class="icon">🚨</span> REPORT INCIDENT
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN HUD GRID -->
+  <main class="hud-main">
+
+    <!-- LEFT PANEL: PRIORITY MAX-HEAP & FLEET STATUS -->
+    <aside class="hud-sidebar hud-sidebar-left">
+      <!-- Live Priority Queue (Max-Heap) -->
+      <section class="panel-section heap-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">⚡</span> LIVE TRIAGE QUEUE (MAX-HEAP)
+          </div>
+          <span class="badge badge-red" id="heap-count-badge">0</span>
+        </div>
+        <div class="panel-subtitle">Sorted strictly by real-time triage priority algorithm</div>
+        <div class="incident-list scrollbar-cyber" id="incident-list-container">
+          <!-- Dynamic incident cards -->
+        </div>
+      </section>
+
+      <!-- Fleet Readiness -->
+      <section class="panel-section fleet-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">🛡️</span> RESPONSE FLEET MATRIX
+          </div>
+          <button class="btn-icon" id="btn-open-resource-modal" title="Commission new resource">+</button>
+        </div>
+        <div class="fleet-filter-bar">
+          <button class="filter-tab active" data-filter="all">ALL</button>
+          <button class="filter-tab" data-filter="available">READY</button>
+          <button class="filter-tab" data-filter="dispatched">ACTIVE</button>
+        </div>
+        <div class="fleet-list scrollbar-cyber" id="fleet-list-container">
+          <!-- Dynamic fleet cards -->
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTER AREA: INTERACTIVE TACTICAL MAP CANVAS -->
+    <section class="hud-map-area">
+      <!-- Map Top Toolbar -->
+      <div class="map-toolbar">
+        <div class="toolbar-left">
+          <div class="route-selector">
+            <span class="route-label">DIJKSTRA ROUTE:</span>
+            <select id="route-start-select" class="select-cyber">
+              <option value="">Start Sector...</option>
+            </select>
+            <span class="route-arrow">➔</span>
+            <select id="route-dest-select" class="select-cyber">
+              <option value="">Destination...</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="btn-find-path">
+              <span class="icon">⚡</span> ROUTE
+            </button>
+            <button class="btn btn-outline btn-sm" id="btn-clear-path">CLEAR</button>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <button class="btn btn-sm btn-toggle" id="btn-toggle-block-mode" title="Click roads directly on map to block/unblock">
+            <span class="icon">🚧</span> ROAD BLOCK MODE: <span id="block-mode-status">OFF</span>
+          </button>
+          <button class="btn btn-sm btn-icon-only" id="btn-reset-view" title="Reset View &amp; Center Map">🎯</button>
+          <button class="btn btn-sm btn-icon-only" id="btn-toggle-flow" title="Toggle Traffic Flow Particles">✨</button>
+          <button class="btn btn-sm btn-icon-only" id="btn-toggle-radar" title="Toggle Radar Sweep">📡</button>
+        </div>
+      </div>
+
+      <!-- Canvas Container -->
+      <div class="canvas-wrapper" id="canvas-wrapper">
+        <canvas id="ares-map-canvas"></canvas>
+
+        <!-- Overlaid Map Legend & Compass -->
+        <div class="map-compass">
+          <div class="compass-rose">N</div>
+          <div class="coord-readout" id="coord-readout">GRID: SECTOR-00 // 50.00N, 50.00E</div>
+        </div>
+
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-dot green"></span> Clear Sector</div>
+          <div class="legend-item"><span class="legend-dot yellow"></span> Med / Amb Triage</div>
+          <div class="legend-item"><span class="legend-dot orange"></span> High Hazard</div>
+          <div class="legend-item"><span class="legend-dot red"></span> Critical Priority</div>
+          <div class="legend-item"><span class="legend-line cyan"></span> Active Dijkstra Path</div>
+          <div class="legend-item"><span class="legend-line red-dash"></span> Blocked Artery</div>
+        </div>
+
+        <!-- Floating Dijkstra Route Info HUD -->
+        <div class="route-info-card" id="route-info-card" style="display: none;">
+          <div class="route-info-header">
+            <span class="icon">⚡</span> OPTIMAL DIJKSTRA ROUTE COMPUTED
+            <button class="btn-close-sm" id="btn-close-route-info">&times;</button>
+          </div>
+          <div class="route-info-body">
+            <div class="route-metrics">
+              <div class="rm-item"><span class="rm-val text-cyan" id="route-cost-val">0 min</span><span class="rm-lbl">EST. TRAVEL TIME</span></div>
+              <div class="rm-item"><span class="rm-val text-green" id="route-hops-val">0</span><span class="rm-lbl">NETWORK HOPS</span></div>
+              <div class="rm-item"><span class="rm-val text-amber" id="route-eff-val">100%</span><span class="rm-lbl">EFFICIENCY</span></div>
+            </div>
+            <div class="route-nodes-flow" id="route-nodes-flow">
+              <!-- Node hops badges -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Event Stream / Live Ticker -->
+      <div class="event-stream-bar">
+        <div class="stream-label"><span class="live-dot"></span> LIVE DISPATCH FEED:</div>
+        <div class="stream-ticker" id="stream-ticker">
+          ARES Command System operational &bull; Monitoring 12 urban sectors &bull; 0 alarms active
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: DISPATCH CONTROLLER, SIMULATION CLOCK, INSPECTOR -->
+    <aside class="hud-sidebar hud-sidebar-right">
+      <!-- Smart Auto-Dispatch Wizard -->
+      <section class="panel-section dispatch-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">🎯</span> SMART AUTO-DISPATCH
+          </div>
+        </div>
+        <div class="dispatch-body">
+          <p class="panel-text">Auto-selects highest priority crisis from Max-Heap and deploys nearest compatible unit via Dijkstra shortest path.</p>
+          <button class="btn btn-block btn-accent" id="btn-auto-dispatch-top">
+            <span class="icon">🚀</span> AUTO-DISPATCH TOP CRISIS
+          </button>
+        </div>
+      </section>
+
+      <!-- Simulation Controller -->
+      <section class="panel-section sim-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">⏱️</span> CRISIS SIMULATION CLOCK
+          </div>
+          <span class="badge badge-cyan" id="sim-speed-badge">1x</span>
+        </div>
+        <div class="sim-controls">
+          <div class="sim-btn-group">
+            <button class="btn btn-sm btn-outline" id="btn-sim-play"><span class="icon" id="sim-play-icon">▶</span> <span id="sim-play-text">START</span></button>
+            <button class="btn btn-sm btn-outline" id="btn-sim-step5">+5 MIN</button>
+            <button class="btn btn-sm btn-outline" id="btn-sim-step15">+15 MIN</button>
+          </div>
+          <div class="sim-speed-group">
+            <span class="speed-label">SPEED:</span>
+            <button class="btn-speed active" data-speed="1">1x</button>
+            <button class="btn-speed" data-speed="2">2x</button>
+            <button class="btn-speed" data-speed="5">5x</button>
+          </div>
+          <div class="sim-action-group">
+            <button class="btn btn-sm btn-outline btn-block" id="btn-load-scenario">
+              <span class="icon">🏙️</span> RELOAD CRISIS SCENARIO
+            </button>
+            <button class="btn btn-sm btn-danger btn-block" id="btn-trigger-disaster">
+              <span class="icon">⚠️</span> SIMULATE RANDOM CRISIS
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inspector Panel (Selected Node / Edge / Incident Details) -->
+      <section class="panel-section inspector-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">🔍</span> TACTICAL INSPECTOR
+          </div>
+        </div>
+        <div class="inspector-content scrollbar-cyber" id="inspector-content">
+          <div class="inspector-placeholder">
+            Click any sector node or road artery on the map to inspect live telemetry, stationed fleet, and active hazards.
+          </div>
+        </div>
+      </section>
+    </aside>
+
+  </main>
+
+  <!-- MODAL: REPORT EMERGENCY -->
+  <div class="modal-backdrop" id="modal-report" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><span class="icon">🚨</span> REGISTER NEW EMERGENCY INCIDENT</div>
+        <button class="modal-close" id="btn-close-report-modal">&times;</button>
+      </div>
+      <form id="form-report-emergency">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="rep-name">Reporter / Agency</label>
+              <input type="text" id="rep-name" class="input-cyber" required value="Officer Daniels">
+            </div>
+            <div class="form-group">
+              <label for="rep-node">Sector Node Location</label>
+              <select id="rep-node" class="select-cyber" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="rep-type">Emergency Type</label>
+              <select id="rep-type" class="select-cyber" required>
+                <option value="0">Fire (High Risk: 0.85)</option>
+                <option value="1" selected>Medical (Trauma Risk: 0.90)</option>
+                <option value="2">Flood (Risk: 0.70)</option>
+                <option value="3">Accident (Risk: 0.75)</option>
+                <option value="4">Earthquake (Critical Risk: 1.00)</option>
+                <option value="5">HazMat / Chemical (Risk: 0.95)</option>
+                <option value="6">Other (Risk: 0.40)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="rep-severity">Severity Level</label>
+              <select id="rep-severity" class="select-cyber" required>
+                <option value="1">1 - Low (Minor / Informational)</option>
+                <option value="2">2 - Medium (Significant)</option>
+                <option value="3" selected>3 - High (Urgent Response)</option>
+                <option value="4">4 - Critical (Life Threatening)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="rep-affected">People Affected / Casualties</label>
+            <input type="number" id="rep-affected" class="input-cyber" min="0" max="10000" value="25" required>
+          </div>
+
+          <div class="form-group">
+            <label for="rep-desc">Incident Description &amp; Hazards</label>
+            <textarea id="rep-desc" class="input-cyber" rows="3" placeholder="Describe emergency conditions..." required>Multiple vehicle trauma with severe structural damage</textarea>
+          </div>
+
+          <!-- Dynamic Priority Score Preview -->
+          <div class="score-preview-box">
+            <div class="score-label">PREDICTED PRIORITY HEAP SCORE:</div>
+            <div class="score-number text-magenta" id="score-preview-val">87.5 / 100</div>
+            <div class="score-formula">Formula: 40% Severity + 25% Affected + 20% Type Risk + 15% Waiting Time</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-report">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span class="icon">⚡</span> SUBMIT DISPATCH ALARM</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: COMMISSION RESOURCE -->
+  <div class="modal-backdrop" id="modal-resource" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><span class="icon">🛡️</span> COMMISSION FLEET RESOURCE</div>
+        <button class="modal-close" id="btn-close-resource-modal">&times;</button>
+      </div>
+      <form id="form-add-resource">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="res-id">Unit Call Sign / ID</label>
+              <input type="text" id="res-id" class="input-cyber" placeholder="e.g. AMB-03" required>
+            </div>
+            <div class="form-group">
+              <label for="res-name">Unit Name / Descriptor</label>
+              <input type="text" id="res-name" class="input-cyber" placeholder="e.g. Rapid ALS Squad 3" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="res-type">Resource Classification</label>
+              <select id="res-type" class="select-cyber" required>
+                <option value="0">Ambulance (ALS / Medical)</option>
+                <option value="1">Fire Truck (Fire Suppression)</option>
+                <option value="2">Police Unit (Crowd &amp; Security)</option>
+                <option value="3">Rescue Team (Urban Search &amp; Rescue)</option>
+                <option value="4">Helicopter (Air Medevac / Aerial)</option>
+                <option value="5">HazMat Unit (CBRN Decontamination)</option>
+                <option value="6">Fixed Shelter Station</option>
+                <option value="7">Logistics Warehouse</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="res-node">Home Base Sector Node</label>
+              <select id="res-node" class="select-cyber" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="res-capacity">Capacity (Persons / Stretcher slots)</label>
+            <input type="number" id="res-capacity" class="input-cyber" min="1" max="500" value="4" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="btn-cancel-resource">Cancel</button>
+          <button type="submit" class="btn btn-primary"><span class="icon">🛡️</span> COMMISSION UNIT</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- LOAD INITIAL JS DATA BRIDGE (Ensures 100% offline file:// capability) -->
+  <script src="live_data.js"></script>
+  <!-- MAIN APPLICATION CONTROLLER -->
+  <script src="app.js"></script>
+</body>
+</html>
