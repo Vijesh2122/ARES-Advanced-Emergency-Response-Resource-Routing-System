@@ -8,11 +8,15 @@
 static char g_labels[MAX_GRAPH_NODES][MAX_LABEL_LEN];
 static bool g_present[MAX_GRAPH_NODES];
 static int g_cost[MAX_GRAPH_NODES][MAX_GRAPH_NODES];
+static bool g_blocked[MAX_GRAPH_NODES][MAX_GRAPH_NODES];
+static int g_coords[MAX_GRAPH_NODES][2];
 static int g_nodes;
 
 void graph_init(void) {
     memset(g_labels, 0, sizeof(g_labels));
     memset(g_present, 0, sizeof(g_present));
+    memset(g_blocked, 0, sizeof(g_blocked));
+    memset(g_coords, 0, sizeof(g_coords));
     g_nodes = 0;
     for (int i = 0; i < MAX_GRAPH_NODES; ++i)
         for (int j = 0; j < MAX_GRAPH_NODES; ++j)
@@ -31,11 +35,70 @@ AresStatus graph_add_node(NodeID id, const char *label) {
     return ARES_OK;
 }
 
+AresStatus graph_set_node_coord(NodeID id, int x, int y) {
+    if (!graph_node_exists(id)) return ARES_ERR_NOT_FOUND;
+    g_coords[id][0] = x;
+    g_coords[id][1] = y;
+    return ARES_OK;
+}
+
+AresStatus graph_get_node_coord(NodeID id, int *out_x, int *out_y) {
+    if (!out_x || !out_y) return ARES_ERR_NULL;
+    if (!graph_node_exists(id)) return ARES_ERR_NOT_FOUND;
+    *out_x = g_coords[id][0];
+    *out_y = g_coords[id][1];
+    return ARES_OK;
+}
+
 AresStatus graph_add_road(NodeID from, NodeID to, int minutes, bool bidirectional) {
     if (!graph_node_exists(from) || !graph_node_exists(to) || minutes <= 0) return ARES_ERR_INVALID;
     g_cost[from][to] = minutes;
-    if (bidirectional) g_cost[to][from] = minutes;
+    g_blocked[from][to] = false;
+    if (bidirectional) {
+        g_cost[to][from] = minutes;
+        g_blocked[to][from] = false;
+    }
     return ARES_OK;
+}
+
+AresStatus graph_set_road_blocked(NodeID from, NodeID to, bool blocked) {
+    if (!graph_node_exists(from) || !graph_node_exists(to)) return ARES_ERR_NOT_FOUND;
+    if (g_cost[from][to] == ARES_ROUTE_INFINITY && g_cost[to][from] == ARES_ROUTE_INFINITY)
+        return ARES_ERR_INVALID;
+    g_blocked[from][to] = blocked;
+    g_blocked[to][from] = blocked;
+    return ARES_OK;
+}
+
+bool graph_is_road_blocked(NodeID from, NodeID to) {
+    if (!graph_node_exists(from) || !graph_node_exists(to)) return false;
+    return g_blocked[from][to];
+}
+
+int graph_get_road_cost(NodeID from, NodeID to) {
+    if (!graph_node_exists(from) || !graph_node_exists(to)) return ARES_ROUTE_INFINITY;
+    if (g_blocked[from][to]) return ARES_ROUTE_INFINITY;
+    return g_cost[from][to];
+}
+
+int graph_get_all_roads(AresRoadInfo *out_roads, int max_roads) {
+    if (!out_roads || max_roads <= 0) return 0;
+    int count = 0;
+    for (int i = 0; i < MAX_GRAPH_NODES; ++i) {
+        if (!g_present[i]) continue;
+        for (int j = i + 1; j < MAX_GRAPH_NODES; ++j) {
+            if (g_present[j] && g_cost[i][j] != ARES_ROUTE_INFINITY) {
+                if (count < max_roads) {
+                    out_roads[count].from = i;
+                    out_roads[count].to = j;
+                    out_roads[count].cost = g_cost[i][j];
+                    out_roads[count].blocked = g_blocked[i][j];
+                    count++;
+                }
+            }
+        }
+    }
+    return count;
 }
 
 const char *graph_node_label(NodeID id) { return graph_node_exists(id) ? g_labels[id] : "Unknown node"; }
@@ -56,7 +119,7 @@ AresStatus graph_shortest_path(NodeID start, NodeID destination, AresRoute *out_
         used[u] = true;
         if (u == destination) break;
         for (int v = 0; v < MAX_GRAPH_NODES; ++v) {
-            if (!g_present[v] || used[v] || g_cost[u][v] == ARES_ROUTE_INFINITY) continue;
+            if (!g_present[v] || used[v] || g_cost[u][v] == ARES_ROUTE_INFINITY || g_blocked[u][v]) continue;
             if (dist[u] + g_cost[u][v] < dist[v]) { dist[v] = dist[u] + g_cost[u][v]; prev[v] = u; }
         }
     }
@@ -83,7 +146,12 @@ void graph_print_network(void) {
     for (int i = 0; i < MAX_GRAPH_NODES; ++i) if (g_present[i]) {
         printf("  [%02d] %-18s : ", i, g_labels[i]); bool first = true;
         for (int j = 0; j < MAX_GRAPH_NODES; ++j) if (g_present[j] && i != j && g_cost[i][j] != ARES_ROUTE_INFINITY) {
-            printf("%s%s (%dm)", first ? "" : ", ", g_labels[j], g_cost[i][j]); first = false;
+            if (g_blocked[i][j]) {
+                printf("%s%s (BLOCKED!)", first ? "" : ", ", g_labels[j]);
+            } else {
+                printf("%s%s (%dm)", first ? "" : ", ", g_labels[j], g_cost[i][j]);
+            }
+            first = false;
         }
         printf("\n");
     }
@@ -91,8 +159,27 @@ void graph_print_network(void) {
 
 void graph_load_demo_city(void) {
     static const char *labels[] = { "Central HQ", "North Station", "City Hospital", "University", "Tech Park", "Airport", "River Bridge", "Old Town", "Industrial Zone", "East Shelter", "West Market", "South Station" };
+    static const int coords[][2] = {
+        {48, 48}, /* 0: Central HQ */
+        {34, 18}, /* 1: North Station */
+        {20, 42}, /* 2: City Hospital */
+        {32, 75}, /* 3: University */
+        {58, 22}, /* 4: Tech Park */
+        {84, 16}, /* 5: Airport */
+        {38, 58}, /* 6: River Bridge */
+        {18, 86}, /* 7: Old Town */
+        {78, 52}, /* 8: Industrial Zone */
+        {92, 42}, /* 9: East Shelter */
+        {62, 76}, /* 10: West Market */
+        {46, 94}  /* 11: South Station */
+    };
     static const int roads[][3] = {{0,1,4},{0,2,3},{0,3,5},{1,4,6},{2,4,4},{2,6,5},{3,7,4},{4,5,7},{4,8,5},{5,9,6},{6,7,3},{6,10,4},{7,11,6},{8,9,3},{8,10,5},{10,11,4}};
     graph_init();
-    for (int i = 0; i < (int)(sizeof(labels) / sizeof(labels[0])); ++i) graph_add_node(i, labels[i]);
-    for (int i = 0; i < (int)(sizeof(roads) / sizeof(roads[0])); ++i) graph_add_road(roads[i][0], roads[i][1], roads[i][2], true);
+    for (int i = 0; i < (int)(sizeof(labels) / sizeof(labels[0])); ++i) {
+        graph_add_node(i, labels[i]);
+        graph_set_node_coord(i, coords[i][0], coords[i][1]);
+    }
+    for (int i = 0; i < (int)(sizeof(roads) / sizeof(roads[0])); ++i) {
+        graph_add_road(roads[i][0], roads[i][1], roads[i][2], true);
+    }
 }

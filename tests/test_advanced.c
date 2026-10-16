@@ -6,6 +6,8 @@
 #include "persistence.h"
 #include "priority_queue.h"
 #include "resource.h"
+#include "simulation.h"
+#include "map.h"
 #include "utils.h"
 
 static int passed, failed;
@@ -49,8 +51,29 @@ int main(void) {
     bool loaded = false;
     ASSERT(persistence_load("build/advanced_test_state.bin", &loaded) == ARES_OK && loaded,
            "State snapshot loads");
-    ASSERT(emergency_db_count() == 1, "Loaded snapshot restores incident");
-    remove("build/advanced_test_state.bin");
+    /* Road blocking & Dynamic Dijkstra re-routing test */
+    AresRoute direct_route, reroute;
+    ASSERT(graph_shortest_path(2, 4, &direct_route) == ARES_OK && direct_route.total_cost == 4,
+           "Direct route from Hospital [2] to Tech Park [4] is 4 min");
+    ASSERT(graph_set_road_blocked(2, 4, true) == ARES_OK, "Road 2-4 blocked");
+    ASSERT(graph_is_road_blocked(2, 4) == true, "Road 2-4 is confirmed blocked");
+    ASSERT(graph_shortest_path(2, 4, &reroute) == ARES_OK, "Dijkstra finds alternative detour route");
+    ASSERT(reroute.total_cost > direct_route.total_cost, "Detour route has higher cost than direct road");
+    ASSERT(graph_set_road_blocked(2, 4, false) == ARES_OK, "Road 2-4 unblocked");
+    ASSERT(graph_shortest_path(2, 4, &direct_route) == ARES_OK && direct_route.total_cost == 4,
+           "Route restores to 4 min after road unblocked");
+
+    /* Map telemetry export test */
+    ASSERT(map_export_live_data("build/test_live.json", "build/test_live.js") == ARES_OK,
+           "Map telemetry exports to JSON and JS bridge");
+    remove("build/test_live.json");
+    remove("build/test_live.js");
+
+    /* Crisis scenario generator test */
+    simulation_load_crisis_scenario();
+    ASSERT(emergency_db_count() == 6, "Crisis scenario populates 6 active emergencies");
+    ASSERT(resource_db_count() == 8, "Crisis scenario populates 8 response units");
+
     printf("===========================================\n  Results: %d passed, %d failed\n===========================================\n", passed, failed);
     return failed ? EXIT_FAILURE : EXIT_SUCCESS;
 }

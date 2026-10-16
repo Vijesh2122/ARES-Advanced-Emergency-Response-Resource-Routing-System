@@ -15,26 +15,30 @@ ARES is a terminal-based **C11 data-structures project** that simulates a city e
 
 ## Current capabilities
 
-- Register, search, update, filter, and safely delete emergency incidents.
-- Register ambulances, fire trucks, police, rescue, helicopter, HazMat, shelter, and warehouse resources.
-- Calculate a transparent incident-priority score from severity, people affected, incident risk, and waiting time.
-- View the 12-node demo city network and find a shortest route between any two active nodes.
-- Auto-dispatch the closest **available and compatible** unit to a pending incident, with route and ETA.
-- View a command dashboard with fleet readiness, incident counts, and the top five live incidents from the priority heap.
-- Automatically restore and save local state to `data/ares_state.bin`.
+- **Interactive Tactical Visual Map (Web GUI)**: High-tech cyberpunk EOC dashboard featuring real-time spatial node graph, glowing Dijkstra laser paths, live animated response units, traffic particle flow, and Web Audio API telemetry chimes.
+- **Terminal Topology Radar Map (ASCII / ANSI)**: 2D console city grid displaying active emergencies, severity rings, stationed fleet call signs, and Dijkstra route tracing.
+- **Dynamic Dijkstra Routing & Road Obstructions**: Real-time road blocking / unblocking to simulate disasters or debris, with automatic dynamic shortest-path re-routing.
+- **Smart Auto-Dispatch Engine**: Auto-selects the highest-priority incident from the binary Max-Heap, filters compatible response units, computes optimal Dijkstra paths, and dispatches units with live travel ETAs.
+- **Crisis Simulation Engine & Real-Time Clock**: Step time by +5m or +15m, advance moving units along roads, resolve stabilized emergencies, update waiting times, and trigger multi-alarm random disaster scenarios.
+- **Metro Crisis Scenario Generator**: Pre-loaded crisis scenario featuring 8 specialized response units and 6 multi-alarm emergency incidents across the city.
+- **Versioned State Persistence & Live Telemetry Bridge**: Automatically syncs C backend state to `data/ares_state.bin`, `data/ares_live.json`, and `web/live_data.js`.
 
 ## Project layout
 
 ```text
-include/                 Public module interfaces
-src/emergency/           Emergency model and registry
-src/resource/            Resource model and registry
-src/routing/graph.c      Weighted city graph and Dijkstra routing
+include/                 Public module interfaces (graph, map, simulation, etc.)
+src/emergency/           Emergency model, priority scoring, and registry
+src/resource/            Resource fleet model, capability filtering, and registry
+src/routing/graph.c      Weighted city graph, road blocking, and Dijkstra routing
+src/simulation/          Crisis simulation engine, time stepping, and scenarios
 src/structures/          Binary max-heap priority queue
 src/storage/             Versioned binary snapshot persistence
-src/ui/                  Terminal menus, forms, and utilities
-tests/                   Emergency, resource, and algorithm tests
-data/                    Locally saved state (generated at runtime)
+src/ui/map.c             Visual ANSI terminal radar map & web telemetry bridge
+src/ui/ui.c              Terminal menus, prompts, forms, and utilities
+src/main.c               Top-level event loop and orchestration
+web/                     Interactive Cyberpunk Tactical Map HUD (HTML5 Canvas/JS)
+tests/                   Comprehensive unit tests (emergency, resource, algorithms)
+data/                    Locally saved state and live JSON telemetry
 ```
 
 ## Build and run
@@ -68,12 +72,13 @@ make tests
 
 ## Demo flow for a project presentation
 
-1. Open **Smart Dispatch & Route Planner → View City Network**.
-2. Add a Fire, Medical, or HazMat emergency at a city node.
-3. Add a compatible unit at another node.
-4. Open **Live Command Dashboard** to show the priority heap ordering.
-5. Select **Auto-Dispatch Nearest Compatible Unit** to show Dijkstra’s route and ETA.
-6. Restart the program to demonstrate persistence.
+1. Open **Tactical City Map → View Terminal City Radar Map** to inspect the 12-sector spatial topology and active alarms.
+2. Select **Launch Interactive Visual Web HUD** to open the real-time cyberpunk visual map in your browser.
+3. On the map, select two sectors (e.g., North Station and Industrial Zone) and click **ROUTE** to watch Dijkstra shortest path calculation with animated laser glow.
+4. Click **AUTO-DISPATCH TOP CRISIS** to auto-triage the highest-priority Max-Heap incident, dispatch the nearest compatible unit, and watch the unit move across the city network.
+5. In **Road Blockage Mode**, click on an active road to simulate a disaster blockage, and observe Dijkstra immediately compute an alternative detour route.
+6. Use **Simulation Clock (+5m)** to advance time, witness units arrive at incidents, and see emergencies transition to RESOLVED.
+7. Restart the program to demonstrate automated state persistence.
 
 ## Verification
 

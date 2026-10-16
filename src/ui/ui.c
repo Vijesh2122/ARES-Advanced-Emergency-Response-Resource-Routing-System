@@ -122,12 +122,14 @@ const char *ui_res_status_colour(ResourceStatus s) {
 void ui_show_main_menu(void) {
     printf("\n");
     ui_print_header("MAIN MENU");
-    printf("  " COL_GREEN  "[1]" COL_RESET " Emergency Management\n");
-    printf("  " COL_CYAN   "[2]" COL_RESET " Resource Management\n");
-    printf("  " COL_YELLOW "[3]" COL_RESET " Live Command Dashboard\n");
-    printf("  " COL_MAGENTA "[4]" COL_RESET " Smart Dispatch & Route Planner\n");
-    printf("  " COL_CYAN   "[5]" COL_RESET " System Statistics\n");
-    printf("  " COL_RED    "[0]" COL_RESET " Exit ARES\n");
+    printf("  " COL_GREEN   "[1]" COL_RESET " Emergency Management\n");
+    printf("  " COL_CYAN    "[2]" COL_RESET " Resource Management\n");
+    printf("  " COL_YELLOW  "[3]" COL_RESET " Live Command Dashboard\n");
+    printf("  " COL_MAGENTA "[4]" COL_RESET " Tactical City Map (Interactive Web HUD & Radar)\n");
+    printf("  " COL_CYAN    "[5]" COL_RESET " Smart Dispatch & Route Planner (Dijkstra)\n");
+    printf("  " COL_GREEN   "[6]" COL_RESET " Crisis Simulation Engine (+5m Tick / Scenarios)\n");
+    printf("  " COL_CYAN    "[7]" COL_RESET " System Statistics\n");
+    printf("  " COL_RED     "[0]" COL_RESET " Exit ARES\n");
     ui_print_separator();
 }
 
@@ -163,10 +165,13 @@ void ui_show_resource_menu(void) {
 void ui_show_routing_menu(void) {
     printf("\n");
     ui_print_header("SMART DISPATCH & ROUTE PLANNER");
-    printf("  " COL_CYAN    "[1]" COL_RESET " View City Network\n");
+    printf("  " COL_CYAN    "[1]" COL_RESET " View City Network Connections\n");
     printf("  " COL_CYAN    "[2]" COL_RESET " Find Shortest Route (Dijkstra)\n");
     printf("  " COL_GREEN   "[3]" COL_RESET " Auto-Dispatch Nearest Compatible Unit\n");
-    printf("  " COL_YELLOW  "[4]" COL_RESET " Open Live Priority Dashboard\n");
+    printf("  " COL_MAGENTA "[4]" COL_RESET " Open Tactical Visual Map HUD (Interactive Browser GUI)\n");
+    printf("  " COL_YELLOW  "[5]" COL_RESET " View Terminal City Radar Map (ASCII Graphic)\n");
+    printf("  " COL_RED     "[6]" COL_RESET " Block / Unblock Road (Dynamic Re-routing)\n");
+    printf("  " COL_YELLOW  "[7]" COL_RESET " Open Live Priority Dashboard\n");
     printf("  " COL_GRAY    "[0]" COL_RESET " Back to Main Menu\n");
     ui_print_separator();
 }

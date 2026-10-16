@@ -29,6 +29,8 @@ APP_SRCS := src/main.c \
             src/routing/graph.c \
             src/storage/persistence.c \
             src/structures/priority_queue.c \
+            src/simulation/simulation.c \
+            src/ui/map.c \
             src/ui/ui.c \
             src/ui/utils.c
 
@@ -38,6 +40,9 @@ LIB_SRCS := src/emergency/emergency.c \
             src/routing/graph.c \
             src/storage/persistence.c \
             src/structures/priority_queue.c \
+            src/simulation/simulation.c \
+            src/ui/map.c \
+            src/ui/ui.c \
             src/ui/utils.c
 
 TARGET   := $(BLDDIR)/ares.exe

@@ -15,10 +15,23 @@ typedef struct {
     int total_cost;
 } AresRoute;
 
+typedef struct {
+    NodeID from;
+    NodeID to;
+    int cost;
+    bool blocked;
+} AresRoadInfo;
+
 void graph_init(void);
 AresStatus graph_add_node(NodeID id, const char *label);
+AresStatus graph_set_node_coord(NodeID id, int x, int y);
+AresStatus graph_get_node_coord(NodeID id, int *out_x, int *out_y);
 AresStatus graph_add_road(NodeID from, NodeID to, int travel_minutes,
                           bool bidirectional);
+AresStatus graph_set_road_blocked(NodeID from, NodeID to, bool blocked);
+bool graph_is_road_blocked(NodeID from, NodeID to);
+int graph_get_road_cost(NodeID from, NodeID to);
+int graph_get_all_roads(AresRoadInfo *out_roads, int max_roads);
 bool graph_node_exists(NodeID id);
 const char *graph_node_label(NodeID id);
 int graph_node_count(void);

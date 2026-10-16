@@ -26,6 +26,8 @@
 #include "graph.h"
 #include "persistence.h"
 #include "priority_queue.h"
+#include "simulation.h"
+#include "map.h"
 #include "ui.h"
 #include "utils.h"
 
@@ -37,6 +39,7 @@ static const char *STATE_FILE = "data/ares_state.bin";
 static void save_state_quietly(void) {
     if (persistence_save(STATE_FILE) != ARES_OK)
         printf(COL_YELLOW "  [!] State could not be saved.\n" COL_RESET);
+    map_export_live_data("data/ares_live.json", "web/live_data.js");
 }
 
 /* =======================================================================
@@ -448,17 +451,49 @@ static void routing_menu_loop(void) {
     char pause[4];
     do {
         ui_show_routing_menu();
-        choice = ui_read_int("  Choice: ", 0, 4);
+        choice = ui_read_int("  Choice: ", 0, 7);
         if (choice == 1) graph_print_network();
         else if (choice == 2) {
             NodeID from = ui_read_int("  Start node [0-11]: ", 0, MAX_GRAPH_NODES - 1);
             NodeID to = ui_read_int("  Destination node [0-11]: ", 0, MAX_GRAPH_NODES - 1);
             AresRoute route;
-            if (graph_shortest_path(from, to, &route) == ARES_OK) graph_print_route(&route);
-            else printf(COL_RED "  [!] A valid route requires active city nodes.\n" COL_RESET);
-        } else if (choice == 3) auto_dispatch();
-        else if (choice == 4) show_dashboard();
-        if (choice != 0) { save_state_quietly(); printf("\n"); ui_read_string("  Press Enter to continue...", pause, sizeof(pause)); }
+            if (graph_shortest_path(from, to, &route) == ARES_OK) {
+                graph_print_route(&route);
+                printf(COL_CYAN "  Display route on radar map? [1: Yes, 0: No]: " COL_RESET);
+                int show_radar = ui_read_int("", 0, 1);
+                if (show_radar) map_render_terminal(&route);
+            } else {
+                printf(COL_RED "  [!] Destination unreachable (check for blocked roads).\n" COL_RESET);
+            }
+        } else if (choice == 3) {
+            auto_dispatch();
+        } else if (choice == 4) {
+            map_launch_browser_hud();
+        } else if (choice == 5) {
+            map_render_terminal(NULL);
+        } else if (choice == 6) {
+            NodeID u = ui_read_int("  Node A [0-11]: ", 0, 11);
+            NodeID v = ui_read_int("  Node B [0-11]: ", 0, 11);
+            if (u == v) {
+                printf(COL_RED "  [!] Cannot block road to the same node.\n" COL_RESET);
+            } else {
+                bool blocked = !graph_is_road_blocked(u, v);
+                if (graph_set_road_blocked(u, v, blocked) == ARES_OK) {
+                    printf(COL_GREEN "  [OK] Road %s <---> %s is now %s!\n" COL_RESET,
+                           graph_node_label(u), graph_node_label(v),
+                           blocked ? COL_RED "BLOCKED" COL_RESET : COL_GREEN "CLEAR" COL_RESET);
+                } else {
+                    printf(COL_RED "  [!] No direct road exists.\n" COL_RESET);
+                }
+            }
+        } else if (choice == 7) {
+            show_dashboard();
+        }
+        if (choice != 0) {
+            save_state_quietly();
+            printf("\n");
+            ui_read_string("  Press Enter to continue...", pause, sizeof(pause));
+        }
     } while (choice != 0);
 }
 
@@ -469,16 +504,18 @@ static void routing_menu_loop(void) {
 static void show_stats(void) {
     ui_print_header("SYSTEM STATISTICS");
     printf("  ARES Version      : %s\n", ARES_VERSION);
-    printf("  Current Phase     : 4 -- Smart Dispatch + Routing\n");
+    printf("  Current Engine    : Advanced Crisis Response & Spatial Routing\n");
     printf("\n");
     printf("  Emergencies       : %d / %d\n",
            emergency_db_count(), MAX_EMERGENCIES);
     printf("  Resources         : %d / %d\n",
            resource_db_count(),  MAX_RESOURCES);
+    printf("  City Graph Nodes  : %d operational sectors\n", graph_node_count());
+    printf("  Simulation Clock  : +%d minutes elapsed\n", simulation_get_clock_minutes());
     printf("\n");
-    printf("  Active algorithms : Max-Heap priority queue + Dijkstra routing\n");
-    printf("  Storage           : Versioned binary snapshots (local)\n");
-    printf("  Next evolution    : Linked-list storage, hash indexes, undo/redo\n");
+    printf("  Active algorithms : Binary Max-Heap priority queue + Dijkstra shortest path\n");
+    printf("  Visual HUD        : Interactive Browser Tactical Center + ANSI Terminal Radar\n");
+    printf("  Persistence       : Binary snapshots + Real-time JSON telemetry bridge\n");
 }
 
 /* =======================================================================
@@ -490,38 +527,60 @@ int main(void) {
     emergency_db_init();
     resource_db_init();
     graph_load_demo_city();
+    simulation_init();
+
     bool restored = false;
     AresStatus load_status = persistence_load(STATE_FILE, &restored);
+
+    /* If first run or empty database, preload realistic crisis scenario */
+    if (!restored || emergency_db_count() == 0) {
+        simulation_load_crisis_scenario();
+        save_state_quietly();
+    } else {
+        map_export_live_data("data/ares_live.json", "web/live_data.js");
+    }
 
     ui_clear_screen();
     ui_print_banner();
     if (load_status == ARES_OK)
         printf(COL_GREEN "  All subsystems initialised%s.\n" COL_RESET,
-               restored ? "; previous command state restored" : "");
+               restored ? "; previous command state restored" : "; Metro Crisis Scenario primed");
     else
-        printf(COL_YELLOW "  Subsystems initialised; saved state could not be read.\n" COL_RESET);
+        printf(COL_YELLOW "  Subsystems initialised with Metro Crisis Scenario.\n" COL_RESET);
+
+    printf(COL_CYAN  "  Fleet ready: %d units | Active incidents: %d | Spatial nodes: 12\n" COL_RESET,
+           resource_db_count(), emergency_db_count());
 
     int choice;
     char _pause[4];
     do {
         ui_show_main_menu();
-        choice = ui_read_int("  Enter choice: ", 0, 5);
+        choice = ui_read_int("  Enter choice: ", 0, 7);
         switch (choice) {
             case 1: emergency_menu_loop(); break;
             case 2: resource_menu_loop();  break;
-            case 3: show_dashboard();
+            case 3:
+                show_dashboard();
                 printf("\n");
                 ui_read_string("  Press Enter to continue...", _pause, sizeof(_pause));
                 break;
-            case 4: routing_menu_loop(); break;
+            case 4:
+                map_interactive_menu();
+                break;
             case 5:
+                routing_menu_loop();
+                break;
+            case 6:
+                simulation_menu_loop();
+                break;
+            case 7:
                 show_stats();
                 printf("\n");
                 ui_read_string("  Press Enter to continue...", _pause, sizeof(_pause));
                 break;
             case 0:
                 printf(COL_CYAN
-                       "\n  Thank you for using ARES. Stay safe.\n\n"
+                       "\n  Thank you for using ARES Tactical Emergency Command. Stay safe.\n\n"
                        COL_RESET);
                 break;
             default:

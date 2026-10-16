@@ -22,6 +22,8 @@ add_library(ares_core STATIC
     src/routing/graph.c
     src/storage/persistence.c
     src/structures/priority_queue.c
+    src/simulation/simulation.c
+    src/ui/map.c
     src/ui/ui.c
     src/ui/utils.c
 )
