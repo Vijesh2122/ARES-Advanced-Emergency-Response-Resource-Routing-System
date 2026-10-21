@@ -3,31 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARES — Tactical Emergency Command & Spatial GIS Map</title>
+  <title>ARES — Tactical Emergency Command & Spatial GIS Operations Center</title>
+  <meta name="description" content="ARES: Advanced Emergency Response Resource Routing System. High-tech tactical GIS command center featuring real-time Dijkstra shortest-path routing, binary max-heap incident triage, and automated fleet dispatch.">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="cyber-hud">
+<body class="cyber-hud theme-cyan">
 
-  <!-- TOP HEADER / TELEMETRY STATUS BAR -->
+  <!-- TOP HUD / TELEMETRY STATUS BAR -->
   <header class="hud-header">
     <div class="brand-group">
-      <div class="radar-logo-pulse">
+      <div class="radar-logo-pulse" id="btn-brand-home" title="ARES Tactical Operations Center">
         <span class="pulse-ring"></span>
         <span class="core-dot"></span>
       </div>
       <div class="brand-titles">
         <div class="main-title">ARES // TACTICAL COMMAND CENTER</div>
-        <div class="sub-title">EMERGENCY RESPONSE &amp; RESOURCE ROUTING SYSTEM &bull; v3.2 PRO</div>
+        <div class="sub-title">EMERGENCY RESPONSE &amp; RESOURCE ROUTING SYSTEM &bull; v3.5 PRO</div>
       </div>
     </div>
 
-    <!-- Live Telemetry KPI Pills -->
+    <!-- Live Telemetry KPI Readouts -->
     <div class="kpi-group">
       <div class="kpi-card" id="kpi-incidents">
-        <div class="kpi-label">ACTIVE INCIDENTS</div>
+        <div class="kpi-label">ACTIVE ALARMS</div>
         <div class="kpi-value text-red" id="kpi-incidents-val">0</div>
         <div class="kpi-sub" id="kpi-pending-val">0 pending triage</div>
       </div>
@@ -47,206 +48,663 @@
       <div class="kpi-card" id="kpi-backend">
         <div class="kpi-label">C ENGINE TELEMETRY</div>
         <div class="kpi-value text-green" id="sync-status-indicator">ONLINE</div>
-        <div class="kpi-sub" id="sync-timestamp">Connected</div>
+        <div class="kpi-sub" id="sync-timestamp">Direct File/API Synced</div>
       </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Quick Action Toolset & Theme Selector -->
     <div class="header-actions">
-      <button class="btn btn-sm btn-outline" id="btn-audio-toggle" title="Toggle Tactical Audio Effects">
+      <!-- Voice Toggle -->
+      <button class="btn btn-sm btn-outline" id="btn-voice-toggle" title="Toggle AI Tactical Voice Telemetry">
+        <span class="icon" id="voice-icon">🎙️</span> <span id="voice-label">VOICE: ON</span>
+      </button>
+
+      <!-- Audio Toggle -->
+      <button class="btn btn-sm btn-outline" id="btn-audio-toggle" title="Toggle Tactical Web Audio Synthesizer">
         <span class="icon" id="audio-icon">🔊</span> <span id="audio-label">AUDIO: ON</span>
       </button>
-      <button class="btn btn-sm btn-outline" id="btn-sync-reload" title="Reload live telemetry from ARES C backend">
-        <span class="icon">🔄</span> SYNC C ENGINE
+
+      <!-- Theme Switcher -->
+      <div class="theme-dropdown-wrapper">
+        <button class="btn btn-sm btn-outline" id="btn-theme-menu" title="Change HUD Visual Theme">
+          <span class="icon">🎨</span> <span id="theme-label">CYAN HUD</span>
+        </button>
+        <div class="theme-dropdown-menu" id="theme-dropdown" style="display: none;">
+          <button class="theme-opt active" data-theme="theme-cyan"><span class="color-dot cyan"></span> Cyber Cyan</button>
+          <button class="theme-opt" data-theme="theme-crimson"><span class="color-dot crimson"></span> Crimson Alert</button>
+          <button class="theme-opt" data-theme="theme-night"><span class="color-dot green"></span> Night Ops Green</button>
+          <button class="theme-opt" data-theme="theme-amber"><span class="color-dot amber"></span> Thermal Amber</button>
+        </div>
+      </div>
+
+      <!-- Sync C Engine Button -->
+      <button class="btn btn-sm btn-outline" id="btn-sync-reload" title="Synchronize telemetry with disk (data/ares_live.json)">
+        <span class="icon">🔄</span> SYNC DISK
       </button>
+
+      <!-- Report Emergency Button -->
       <button class="btn btn-sm btn-primary" id="btn-open-report-modal">
-        <span class="icon">🚨</span> REPORT INCIDENT
+        <span class="icon">🚨</span> REPORT ALARM
       </button>
     </div>
   </header>
 
-  <!-- MAIN HUD GRID -->
-  <main class="hud-main">
+  <!-- NAVIGATION BAR (Primary Operation Views) -->
+  <nav class="hud-nav">
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-view="view-map" id="tab-nav-map">
+        <span class="nav-icon">🛰️</span> TACTICAL GIS MAP
+      </button>
+      <button class="nav-tab" data-view="view-heap" id="tab-nav-heap">
+        <span class="nav-icon">🌲</span> MAX-HEAP TRIAGE TREE
+      </button>
+      <button class="nav-tab" data-view="view-dijkstra" id="tab-nav-dijkstra">
+        <span class="nav-icon">⚡</span> DIJKSTRA ROUTING LAB
+      </button>
+      <button class="nav-tab" data-view="view-incidents" id="tab-nav-incidents">
+        <span class="nav-icon">🚨</span> INCIDENT REGISTRY
+      </button>
+      <button class="nav-tab" data-view="view-fleet" id="tab-nav-fleet">
+        <span class="nav-icon">🛡️</span> FLEET MATRIX
+      </button>
+      <button class="nav-tab" data-view="view-analytics" id="tab-nav-analytics">
+        <span class="nav-icon">📊</span> CRISIS ANALYTICS
+      </button>
+      <button class="nav-tab" data-view="view-simulation" id="tab-nav-simulation">
+        <span class="nav-icon">⏱️</span> CRISIS SIMULATOR
+      </button>
+    </div>
 
-    <!-- LEFT PANEL: PRIORITY MAX-HEAP & FLEET STATUS -->
-    <aside class="hud-sidebar hud-sidebar-left">
-      <!-- Live Priority Queue (Max-Heap) -->
-      <section class="panel-section heap-panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="icon">⚡</span> LIVE TRIAGE QUEUE (MAX-HEAP)
-          </div>
-          <span class="badge badge-red" id="heap-count-badge">0</span>
-        </div>
-        <div class="panel-subtitle">Sorted strictly by real-time triage priority algorithm</div>
-        <div class="incident-list scrollbar-cyber" id="incident-list-container">
-          <!-- Dynamic incident cards -->
-        </div>
-      </section>
+    <!-- Quick Shortcuts / Help trigger -->
+    <div class="nav-meta">
+      <button class="btn-meta" id="btn-shortcuts-help" title="View Keyboard Shortcuts">⌨️ HOTKEYS</button>
+      <span class="badge badge-meta">12 SECTORS // 16 ARTERIES</span>
+    </div>
+  </nav>
 
-      <!-- Fleet Readiness -->
-      <section class="panel-section fleet-panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="icon">🛡️</span> RESPONSE FLEET MATRIX
-          </div>
-          <button class="btn-icon" id="btn-open-resource-modal" title="Commission new resource">+</button>
-        </div>
-        <div class="fleet-filter-bar">
-          <button class="filter-tab active" data-filter="all">ALL</button>
-          <button class="filter-tab" data-filter="available">READY</button>
-          <button class="filter-tab" data-filter="dispatched">ACTIVE</button>
-        </div>
-        <div class="fleet-list scrollbar-cyber" id="fleet-list-container">
-          <!-- Dynamic fleet cards -->
-        </div>
-      </section>
-    </aside>
+  <!-- MAIN HUD CONTENT CONTAINER -->
+  <main class="hud-main-container">
 
-    <!-- CENTER AREA: INTERACTIVE TACTICAL MAP CANVAS -->
-    <section class="hud-map-area">
-      <!-- Map Top Toolbar -->
-      <div class="map-toolbar">
-        <div class="toolbar-left">
-          <div class="route-selector">
-            <span class="route-label">DIJKSTRA ROUTE:</span>
-            <select id="route-start-select" class="select-cyber">
-              <option value="">Start Sector...</option>
-            </select>
-            <span class="route-arrow">➔</span>
-            <select id="route-dest-select" class="select-cyber">
-              <option value="">Destination...</option>
-            </select>
-            <button class="btn btn-primary btn-sm" id="btn-find-path">
-              <span class="icon">⚡</span> ROUTE
-            </button>
-            <button class="btn btn-outline btn-sm" id="btn-clear-path">CLEAR</button>
-          </div>
-        </div>
-
-        <div class="toolbar-right">
-          <button class="btn btn-sm btn-toggle" id="btn-toggle-block-mode" title="Click roads directly on map to block/unblock">
-            <span class="icon">🚧</span> ROAD BLOCK MODE: <span id="block-mode-status">OFF</span>
-          </button>
-          <button class="btn btn-sm btn-icon-only" id="btn-reset-view" title="Reset View &amp; Center Map">🎯</button>
-          <button class="btn btn-sm btn-icon-only" id="btn-toggle-flow" title="Toggle Traffic Flow Particles">✨</button>
-          <button class="btn btn-sm btn-icon-only" id="btn-toggle-radar" title="Toggle Radar Sweep">📡</button>
-        </div>
-      </div>
-
-      <!-- Canvas Container -->
-      <div class="canvas-wrapper" id="canvas-wrapper">
-        <canvas id="ares-map-canvas"></canvas>
-
-        <!-- Overlaid Map Legend & Compass -->
-        <div class="map-compass">
-          <div class="compass-rose">N</div>
-          <div class="coord-readout" id="coord-readout">GRID: SECTOR-00 // 50.00N, 50.00E</div>
-        </div>
-
-        <div class="map-legend">
-          <div class="legend-item"><span class="legend-dot green"></span> Clear Sector</div>
-          <div class="legend-item"><span class="legend-dot yellow"></span> Med / Amb Triage</div>
-          <div class="legend-item"><span class="legend-dot orange"></span> High Hazard</div>
-          <div class="legend-item"><span class="legend-dot red"></span> Critical Priority</div>
-          <div class="legend-item"><span class="legend-line cyan"></span> Active Dijkstra Path</div>
-          <div class="legend-item"><span class="legend-line red-dash"></span> Blocked Artery</div>
-        </div>
-
-        <!-- Floating Dijkstra Route Info HUD -->
-        <div class="route-info-card" id="route-info-card" style="display: none;">
-          <div class="route-info-header">
-            <span class="icon">⚡</span> OPTIMAL DIJKSTRA ROUTE COMPUTED
-            <button class="btn-close-sm" id="btn-close-route-info">&times;</button>
-          </div>
-          <div class="route-info-body">
-            <div class="route-metrics">
-              <div class="rm-item"><span class="rm-val text-cyan" id="route-cost-val">0 min</span><span class="rm-lbl">EST. TRAVEL TIME</span></div>
-              <div class="rm-item"><span class="rm-val text-green" id="route-hops-val">0</span><span class="rm-lbl">NETWORK HOPS</span></div>
-              <div class="rm-item"><span class="rm-val text-amber" id="route-eff-val">100%</span><span class="rm-lbl">EFFICIENCY</span></div>
+    <!-- ====================================================================
+         VIEW 1: TACTICAL GIS MAP & DISPATCH CONTROLLER
+         ==================================================================== -->
+    <div class="view-panel active" id="view-map">
+      <div class="hud-grid-layout">
+        
+        <!-- LEFT SIDEBAR: PRIORITY MAX-HEAP & FLEET OVERVIEW -->
+        <aside class="hud-sidebar hud-sidebar-left">
+          <!-- Live Priority Queue (Max-Heap) -->
+          <section class="panel-section heap-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">⚡</span> LIVE TRIAGE QUEUE (MAX-HEAP)
+              </div>
+              <span class="badge badge-red" id="heap-count-badge">0</span>
             </div>
-            <div class="route-nodes-flow" id="route-nodes-flow">
-              <!-- Node hops badges -->
+            <div class="panel-subtitle">Ordered strictly by dynamic multi-factor priority algorithm</div>
+            <div class="incident-list scrollbar-cyber" id="incident-list-container">
+              <!-- Dynamically populated incident cards -->
+            </div>
+          </section>
+
+          <!-- Fleet Readiness Preview -->
+          <section class="panel-section fleet-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">🛡️</span> RESPONSE FLEET MATRIX
+              </div>
+              <button class="btn-icon" id="btn-open-resource-modal" title="Commission new resource">+</button>
+            </div>
+            <div class="fleet-filter-bar">
+              <button class="filter-tab active" data-filter="all">ALL</button>
+              <button class="filter-tab" data-filter="available">READY</button>
+              <button class="filter-tab" data-filter="dispatched">ACTIVE</button>
+            </div>
+            <div class="fleet-list scrollbar-cyber" id="fleet-list-container">
+              <!-- Dynamically populated fleet cards -->
+            </div>
+          </section>
+        </aside>
+
+        <!-- CENTER AREA: INTERACTIVE TACTICAL MAP CANVAS -->
+        <section class="hud-map-area">
+          <!-- Map Top Toolbar -->
+          <div class="map-toolbar">
+            <div class="toolbar-left">
+              <div class="route-selector">
+                <span class="route-label">DIJKSTRA ROUTE:</span>
+                <select id="route-start-select" class="select-cyber">
+                  <option value="">Start Sector...</option>
+                </select>
+                <span class="route-arrow">➔</span>
+                <select id="route-dest-select" class="select-cyber">
+                  <option value="">Destination...</option>
+                </select>
+                <button class="btn btn-primary btn-sm" id="btn-find-path">
+                  <span class="icon">⚡</span> ROUTE
+                </button>
+                <button class="btn btn-outline btn-sm" id="btn-clear-path">CLEAR</button>
+              </div>
+            </div>
+
+            <div class="toolbar-right">
+              <button class="btn btn-sm btn-toggle" id="btn-toggle-block-mode" title="Click roads directly on map to block/unblock">
+                <span class="icon">🚧</span> BLOCK MODE: <span id="block-mode-status">OFF</span>
+              </button>
+              <button class="btn btn-sm btn-icon-only" id="btn-reset-view" title="Reset View &amp; Center Map">🎯</button>
+              <button class="btn btn-sm btn-icon-only" id="btn-toggle-flow" title="Toggle Traffic Flow Particles">✨</button>
+              <button class="btn btn-sm btn-icon-only" id="btn-toggle-radar" title="Toggle Radar Sweep">📡</button>
+              <button class="btn btn-sm btn-icon-only" id="btn-toggle-labels" title="Toggle Sector Labels">🏷️</button>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="canvas-wrapper" id="canvas-wrapper">
+            <canvas id="ares-map-canvas"></canvas>
+
+            <!-- Overlaid Map Compass & Coordinate Readout -->
+            <div class="map-compass">
+              <div class="compass-rose">N</div>
+              <div class="coord-readout" id="coord-readout">GRID: SECTOR-00 // 50.00N, 50.00E</div>
+            </div>
+
+            <!-- Overlaid Map Legend -->
+            <div class="map-legend">
+              <div class="legend-item"><span class="legend-dot green"></span> Clear Sector</div>
+              <div class="legend-item"><span class="legend-dot yellow"></span> Med / Amb Triage</div>
+              <div class="legend-item"><span class="legend-dot orange"></span> High Hazard</div>
+              <div class="legend-item"><span class="legend-dot red"></span> Critical Priority</div>
+              <div class="legend-item"><span class="legend-line cyan"></span> Active Dijkstra Path</div>
+              <div class="legend-item"><span class="legend-line red-dash"></span> Blocked Artery</div>
+            </div>
+
+            <!-- Floating Dijkstra Route Info HUD -->
+            <div class="route-info-card" id="route-info-card" style="display: none;">
+              <div class="route-info-header">
+                <span class="icon">⚡</span> OPTIMAL DIJKSTRA ROUTE COMPUTED
+                <button class="btn-close-sm" id="btn-close-route-info">&times;</button>
+              </div>
+              <div class="route-info-body">
+                <div class="route-metrics">
+                  <div class="rm-item"><span class="rm-val text-cyan" id="route-cost-val">0 min</span><span class="rm-lbl">EST. TRAVEL TIME</span></div>
+                  <div class="rm-item"><span class="rm-val text-green" id="route-hops-val">0</span><span class="rm-lbl">NETWORK HOPS</span></div>
+                  <div class="rm-item"><span class="rm-val text-amber" id="route-eff-val">100%</span><span class="rm-lbl">EFFICIENCY</span></div>
+                </div>
+                <div class="route-nodes-flow" id="route-nodes-flow">
+                  <!-- Node hops badges dynamically populated -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Event Stream / Live Ticker -->
+          <div class="event-stream-bar">
+            <div class="stream-label"><span class="live-dot"></span> LIVE DISPATCH FEED:</div>
+            <div class="stream-ticker" id="stream-ticker">
+              ARES Command System operational &bull; Monitoring 12 urban sectors &bull; Ready for deployment
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT SIDEBAR: SMART DISPATCH & SECTOR INSPECTOR -->
+        <aside class="hud-sidebar hud-sidebar-right">
+          <!-- Smart Auto-Dispatch Wizard -->
+          <section class="panel-section dispatch-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">🎯</span> SMART AUTO-DISPATCH
+              </div>
+            </div>
+            <div class="dispatch-body">
+              <p class="panel-text">Auto-selects highest-priority crisis from Max-Heap and deploys the nearest compatible unit via Dijkstra shortest path.</p>
+              <button class="btn btn-block btn-accent" id="btn-auto-dispatch-top">
+                <span class="icon">🚀</span> AUTO-DISPATCH TOP CRISIS
+              </button>
+            </div>
+          </section>
+
+          <!-- Simulation Quick Controller -->
+          <section class="panel-section sim-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">⏱️</span> CRISIS SIMULATION CLOCK
+              </div>
+              <span class="badge badge-cyan" id="sim-speed-badge">1x</span>
+            </div>
+            <div class="sim-controls">
+              <div class="sim-btn-group">
+                <button class="btn btn-sm btn-outline" id="btn-sim-play"><span class="icon" id="sim-play-icon">▶</span> <span id="sim-play-text">START</span></button>
+                <button class="btn btn-sm btn-outline" id="btn-sim-step5">+5 MIN</button>
+                <button class="btn btn-sm btn-outline" id="btn-sim-step15">+15 MIN</button>
+              </div>
+              <div class="sim-speed-group">
+                <span class="speed-label">SPEED:</span>
+                <button class="btn-speed active" data-speed="1">1x</button>
+                <button class="btn-speed" data-speed="2">2x</button>
+                <button class="btn-speed" data-speed="5">5x</button>
+              </div>
+              <div class="sim-action-group">
+                <button class="btn btn-sm btn-outline btn-block" id="btn-load-scenario">
+                  <span class="icon">🏙️</span> RESET CRISIS SCENARIO
+                </button>
+                <button class="btn btn-sm btn-danger btn-block" id="btn-trigger-disaster">
+                  <span class="icon">⚠️</span> SIMULATE RANDOM CRISIS
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Tactical Inspector Panel -->
+          <section class="panel-section inspector-panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <span class="icon">🔍</span> TACTICAL INSPECTOR
+              </div>
+            </div>
+            <div class="inspector-content scrollbar-cyber" id="inspector-content">
+              <div class="inspector-placeholder">
+                Click any sector node or road artery on the map to inspect live telemetry, stationed fleet, and active hazards.
+              </div>
+            </div>
+          </section>
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 2: BINARY MAX-HEAP PRIORITY QUEUE VISUALIZER
+         ==================================================================== -->
+    <div class="view-panel" id="view-heap">
+      <div class="data-structure-layout">
+        <div class="ds-header-bar">
+          <div>
+            <h2><span class="icon">🌲</span> BINARY MAX-HEAP // REAL-TIME INCIDENT TRIAGE ENGINE</h2>
+            <p class="subtitle">Complete visual inspection of the Binary Max-Heap priority queue data structure used in ARES</p>
+          </div>
+          <div class="ds-actions">
+            <button class="btn btn-outline btn-sm" id="btn-heap-refresh">🔄 RECALCULATE HEAP</button>
+            <button class="btn btn-primary btn-sm" id="btn-heap-pop">⚡ POP TOP CRISIS</button>
+          </div>
+        </div>
+
+        <div class="ds-grid">
+          <!-- Heap Tree Canvas Visualizer -->
+          <div class="card ds-tree-card">
+            <div class="card-title">
+              <span>BINARY HEAP TREE TOPOLOGY</span>
+              <span class="badge badge-cyan" id="heap-tree-count-badge">0 NODES</span>
+            </div>
+            <div class="canvas-tree-container">
+              <canvas id="heap-tree-canvas"></canvas>
+            </div>
+            <div class="heap-property-explainer">
+              <span class="tag">Max-Heap Property:</span> Parent Score $\ge$ Child Scores &bull;
+              <span class="tag">Indexing:</span> Parent = $\lfloor(i-1)/2\rfloor$, Left = $2i+1$, Right = $2i+2$
+            </div>
+          </div>
+
+          <!-- Heap Array & Mathematical Breakdown -->
+          <div class="card ds-array-card">
+            <div class="card-title">HEAP ARRAY REPRESENTATION &bull; A[0..N-1]</div>
+            <div class="heap-array-view scrollbar-cyber" id="heap-array-container">
+              <!-- Array index cards -->
+            </div>
+
+            <div class="card-title" style="margin-top: 20px;">MATHEMATICAL PRIORITY FORMULA BREAKDOWN</div>
+            <div class="formula-box">
+              <div class="formula-math">
+                Priority = 100 &times; ( 0.40 &times; (Severity / 4) + 0.25 &times; min(Affected, 1000) / 1000 + 0.20 &times; TypeRisk + 0.15 &times; min(WaitTime, 3600) / 3600 )
+              </div>
+              <div class="formula-weights">
+                <div class="f-weight"><span class="w-pct text-red">40%</span> <span class="w-name">Severity Level (1-4)</span></div>
+                <div class="f-weight"><span class="w-pct text-amber">25%</span> <span class="w-name">Affected Casualties</span></div>
+                <div class="f-weight"><span class="w-pct text-magenta">20%</span> <span class="w-name">Emergency Type Risk</span></div>
+                <div class="f-weight"><span class="w-pct text-cyan">15%</span> <span class="w-name">Waiting / Elapsed Time</span></div>
+              </div>
+            </div>
+
+            <div class="card-title" style="margin-top: 20px;">TRIAGE QUEUE RANKINGS</div>
+            <div class="heap-table-wrapper scrollbar-cyber">
+              <table class="table-cyber" id="heap-ranked-table">
+                <thead>
+                  <tr>
+                    <th>Heap Index</th>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Sector</th>
+                    <th>Severity</th>
+                    <th>Affected</th>
+                    <th>Score</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Bottom Event Stream / Live Ticker -->
-      <div class="event-stream-bar">
-        <div class="stream-label"><span class="live-dot"></span> LIVE DISPATCH FEED:</div>
-        <div class="stream-ticker" id="stream-ticker">
-          ARES Command System operational &bull; Monitoring 12 urban sectors &bull; 0 alarms active
+    <!-- ====================================================================
+         VIEW 3: DIJKSTRA ROUTING & GRAPH EXPLORER
+         ==================================================================== -->
+    <div class="view-panel" id="view-dijkstra">
+      <div class="data-structure-layout">
+        <div class="ds-header-bar">
+          <div>
+            <h2><span class="icon">⚡</span> DYNAMIC DIJKSTRA ROUTING // CITY NETWORK GRAPH LAB</h2>
+            <p class="subtitle">Shortest path computation with real-time road blockage handling, relaxation table, and graph adjacency matrix</p>
+          </div>
+          <div class="ds-actions">
+            <div class="dijkstra-inputs">
+              <select id="dijkstra-lab-start" class="select-cyber"><option value="">Start Sector...</option></select>
+              <span>➔</span>
+              <select id="dijkstra-lab-dest" class="select-cyber"><option value="">Destination...</option></select>
+              <button class="btn btn-primary btn-sm" id="btn-dijkstra-lab-compute">COMPUTE PATH</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dijkstra-grid">
+          <!-- Step-by-Step Shortest Path Result & Relaxation Table -->
+          <div class="card dijkstra-steps-card">
+            <div class="card-title">
+              <span>ALGORITHM EXECUTION &amp; DISTANCE RELAXATION TABLE</span>
+              <span class="badge badge-green" id="dijkstra-status-badge">OPTIMAL FOUND</span>
+            </div>
+            
+            <div class="dijkstra-summary-banner" id="dijkstra-summary-banner">
+              Select Start and Destination sectors above to compute and trace Dijkstra's algorithm.
+            </div>
+
+            <div class="relaxation-table-wrapper scrollbar-cyber">
+              <table class="table-cyber" id="dijkstra-relaxation-table">
+                <thead>
+                  <tr>
+                    <th>Node ID</th>
+                    <th>Sector Label</th>
+                    <th>Tentative Dist (min)</th>
+                    <th>Previous Hop</th>
+                    <th>Visited State</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- City Network Adjacency Matrix & Road Blockage Control -->
+          <div class="card dijkstra-matrix-card">
+            <div class="card-title">
+              <span>CITY GRAPH ADJACENCY MATRIX &amp; ROAD OBSTRUCTIONS</span>
+              <span class="badge badge-amber" id="blocked-roads-count-badge">0 ROADS BLOCKED</span>
+            </div>
+            <p class="panel-subtitle">Click any cell or road row to toggle disaster blockage and observe dynamic re-routing.</p>
+
+            <div class="roads-table-wrapper scrollbar-cyber">
+              <table class="table-cyber" id="roads-table">
+                <thead>
+                  <tr>
+                    <th>Road Segment</th>
+                    <th>Travel Time</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- RIGHT PANEL: DISPATCH CONTROLLER, SIMULATION CLOCK, INSPECTOR -->
-    <aside class="hud-sidebar hud-sidebar-right">
-      <!-- Smart Auto-Dispatch Wizard -->
-      <section class="panel-section dispatch-panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="icon">🎯</span> SMART AUTO-DISPATCH
+    <!-- ====================================================================
+         VIEW 4: INCIDENT REGISTRY (FULL CRUD OPERATIONS)
+         ==================================================================== -->
+    <div class="view-panel" id="view-incidents">
+      <div class="registry-layout">
+        <div class="registry-header">
+          <div>
+            <h2><span class="icon">🚨</span> INCIDENT REGISTRY // EMERGENCY OPERATIONS CENTER</h2>
+            <p class="subtitle">Complete lifecycle management: create, inspect, update priority, reassign, resolve, and archive alarms</p>
           </div>
-        </div>
-        <div class="dispatch-body">
-          <p class="panel-text">Auto-selects highest priority crisis from Max-Heap and deploys nearest compatible unit via Dijkstra shortest path.</p>
-          <button class="btn btn-block btn-accent" id="btn-auto-dispatch-top">
-            <span class="icon">🚀</span> AUTO-DISPATCH TOP CRISIS
-          </button>
-        </div>
-      </section>
-
-      <!-- Simulation Controller -->
-      <section class="panel-section sim-panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="icon">⏱️</span> CRISIS SIMULATION CLOCK
-          </div>
-          <span class="badge badge-cyan" id="sim-speed-badge">1x</span>
-        </div>
-        <div class="sim-controls">
-          <div class="sim-btn-group">
-            <button class="btn btn-sm btn-outline" id="btn-sim-play"><span class="icon" id="sim-play-icon">▶</span> <span id="sim-play-text">START</span></button>
-            <button class="btn btn-sm btn-outline" id="btn-sim-step5">+5 MIN</button>
-            <button class="btn btn-sm btn-outline" id="btn-sim-step15">+15 MIN</button>
-          </div>
-          <div class="sim-speed-group">
-            <span class="speed-label">SPEED:</span>
-            <button class="btn-speed active" data-speed="1">1x</button>
-            <button class="btn-speed" data-speed="2">2x</button>
-            <button class="btn-speed" data-speed="5">5x</button>
-          </div>
-          <div class="sim-action-group">
-            <button class="btn btn-sm btn-outline btn-block" id="btn-load-scenario">
-              <span class="icon">🏙️</span> RELOAD CRISIS SCENARIO
-            </button>
-            <button class="btn btn-sm btn-danger btn-block" id="btn-trigger-disaster">
-              <span class="icon">⚠️</span> SIMULATE RANDOM CRISIS
+          <div class="registry-controls">
+            <input type="text" id="inc-search-input" class="input-cyber input-search" placeholder="🔍 Search by ID, reporter, description, sector...">
+            <div class="filter-btn-group" id="inc-status-filter-group">
+              <button class="filter-tab active" data-inc-filter="all">ALL</button>
+              <button class="filter-tab" data-inc-filter="0">PENDING</button>
+              <button class="filter-tab" data-inc-filter="1">ACTIVE</button>
+              <button class="filter-tab" data-inc-filter="2">RESOLVED</button>
+              <button class="filter-tab" data-inc-filter="3">CANCELLED</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-inc-new-alarm">
+              <span class="icon">🚨</span> + NEW ALARM
             </button>
           </div>
         </div>
-      </section>
 
-      <!-- Inspector Panel (Selected Node / Edge / Incident Details) -->
-      <section class="panel-section inspector-panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <span class="icon">🔍</span> TACTICAL INSPECTOR
+        <div class="registry-table-card scrollbar-cyber">
+          <table class="table-cyber" id="emergencies-master-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Sector Location</th>
+                <th>Severity</th>
+                <th>Affected</th>
+                <th>Priority Score</th>
+                <th>Status</th>
+                <th>Assigned Unit</th>
+                <th>Reported Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 5: FLEET MATRIX (FULL CRUD OPERATIONS)
+         ==================================================================== -->
+    <div class="view-panel" id="view-fleet">
+      <div class="registry-layout">
+        <div class="registry-header">
+          <div>
+            <h2><span class="icon">🛡️</span> FLEET COMMAND MATRIX // RESPONSE UNITS REGISTRY</h2>
+            <p class="subtitle">Monitor response fleet readiness, commission new units, dispatch to crisis sectors, and complete missions</p>
+          </div>
+          <div class="registry-controls">
+            <input type="text" id="fleet-search-input" class="input-cyber input-search" placeholder="🔍 Search unit callsign, name, sector...">
+            <div class="filter-btn-group" id="fleet-status-filter-group">
+              <button class="filter-tab active" data-fleet-filter="all">ALL</button>
+              <button class="filter-tab" data-fleet-filter="0">AVAILABLE</button>
+              <button class="filter-tab" data-fleet-filter="1">DISPATCHED</button>
+              <button class="filter-tab" data-fleet-filter="2">UNAVAILABLE</button>
+              <button class="filter-tab" data-fleet-filter="3">RETURNING</button>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btn-fleet-commission-modal">
+              <span class="icon">🛡️</span> + COMMISSION UNIT
+            </button>
           </div>
         </div>
-        <div class="inspector-content scrollbar-cyber" id="inspector-content">
-          <div class="inspector-placeholder">
-            Click any sector node or road artery on the map to inspect live telemetry, stationed fleet, and active hazards.
+
+        <div class="registry-table-card scrollbar-cyber">
+          <table class="table-cyber" id="fleet-master-table">
+            <thead>
+              <tr>
+                <th>Call Sign</th>
+                <th>Unit Descriptor</th>
+                <th>Classification</th>
+                <th>Base Station</th>
+                <th>Current Sector</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th>Assigned Incident</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 6: CRISIS ANALYTICS & CITY HEATMAP
+         ==================================================================== -->
+    <div class="view-panel" id="view-analytics">
+      <div class="analytics-layout">
+        <div class="registry-header">
+          <div>
+            <h2><span class="icon">📊</span> CRISIS ANALYTICS // CITY TELEMETRY &amp; PERFORMANCE DASHBOARD</h2>
+            <p class="subtitle">Operational statistics, casualty density, fleet deployment ratios, and response performance metrics</p>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btn-analytics-refresh">🔄 REFRESH METRICS</button>
+        </div>
+
+        <div class="analytics-kpi-row">
+          <div class="kpi-box">
+            <div class="kpi-num text-red" id="an-total-incidents">0</div>
+            <div class="kpi-title">TOTAL RECORDED CRISES</div>
+            <div class="kpi-desc">Cumulative logged emergencies</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-num text-amber" id="an-total-casualties">0</div>
+            <div class="kpi-title">TOTAL CITIZENS AFFECTED</div>
+            <div class="kpi-desc">Across all monitored sectors</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-num text-cyan" id="an-fleet-util">0%</div>
+            <div class="kpi-title">FLEET DEPLOYMENT RATE</div>
+            <div class="kpi-desc">Units currently in active missions</div>
+          </div>
+          <div class="kpi-box">
+            <div class="kpi-num text-green" id="an-resolution-rate">0%</div>
+            <div class="kpi-title">STABILIZATION RATE</div>
+            <div class="kpi-desc">Emergencies successfully resolved</div>
           </div>
         </div>
-      </section>
-    </aside>
+
+        <div class="analytics-charts-grid">
+          <!-- Severity Breakdown Chart -->
+          <div class="card chart-card">
+            <div class="card-title">INCIDENT SEVERITY DISTRIBUTION</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-severity-canvas"></canvas>
+            </div>
+            <div class="chart-legend-row" id="chart-severity-legend"></div>
+          </div>
+
+          <!-- Type Distribution Chart -->
+          <div class="card chart-card">
+            <div class="card-title">EMERGENCY CLASSIFICATION BREAKDOWN</div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-types-canvas"></canvas>
+            </div>
+            <div class="chart-legend-row" id="chart-types-legend"></div>
+          </div>
+
+          <!-- Sector Casualties Ranking -->
+          <div class="card chart-card full-width">
+            <div class="card-title">SECTOR HAZARD &amp; CASUALTY DENSITY RANKING</div>
+            <div class="sector-density-grid scrollbar-cyber" id="sector-density-list">
+              <!-- Sector ranking bars -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         VIEW 7: CRISIS SIMULATOR & SCENARIO LAB
+         ==================================================================== -->
+    <div class="view-panel" id="view-simulation">
+      <div class="simulation-lab-layout">
+        <div class="registry-header">
+          <div>
+            <h2><span class="icon">⏱️</span> CRISIS SIMULATION &amp; DISASTER SCENARIO LAB</h2>
+            <p class="subtitle">Step-time simulation clock, multi-alarm disaster scenarios, road collapse simulations, and automated event log</p>
+          </div>
+          <div class="ds-actions">
+            <button class="btn btn-danger btn-sm" id="btn-lab-trigger-disaster">⚠️ TRIGGER RANDOM DISASTER</button>
+          </div>
+        </div>
+
+        <div class="sim-lab-grid">
+          <!-- Simulation Controller Card -->
+          <div class="card sim-lab-controls-card">
+            <div class="card-title">TEMPORAL CLOCK CONTROLS</div>
+            
+            <div class="sim-clock-hero">
+              <div class="clock-time" id="lab-clock-time">00:00:00</div>
+              <div class="clock-elapsed" id="lab-clock-elapsed">+0 minutes elapsed</div>
+            </div>
+
+            <div class="sim-playback-row">
+              <button class="btn btn-primary" id="btn-lab-play">
+                <span class="icon" id="lab-play-icon">▶</span> <span id="lab-play-text">START TIME ENGINE</span>
+              </button>
+              <button class="btn btn-outline" id="btn-lab-step1">+1 MIN</button>
+              <button class="btn btn-outline" id="btn-lab-step5">+5 MIN</button>
+              <button class="btn btn-outline" id="btn-lab-step15">+15 MIN</button>
+              <button class="btn btn-outline" id="btn-lab-step60">+60 MIN</button>
+            </div>
+
+            <div class="card-title" style="margin-top: 24px;">SCENARIO PRESETS</div>
+            <div class="scenario-buttons-grid">
+              <button class="btn-scenario" data-scenario="metro">
+                <div class="sc-title">🏙️ Metro Crisis Scenario</div>
+                <div class="sc-desc">6 multi-alarm incidents across university, hospital, tech park, and bridge</div>
+              </button>
+              <button class="btn-scenario" data-scenario="earthquake">
+                <div class="sc-title">🌋 7.2 Richter Earthquake</div>
+                <div class="sc-desc">Catastrophic structural collapse, bridge damage, and multiple gas leaks</div>
+              </button>
+              <button class="btn-scenario" data-scenario="chemical">
+                <div class="sc-title">☣️ Industrial Chemical Breach</div>
+                <div class="sc-desc">HazMat toxic cloud at Industrial Zone with blocked surrounding arteries</div>
+              </button>
+              <button class="btn-scenario" data-scenario="flood">
+                <div class="sc-title">🌊 River Flash Flood</div>
+                <div class="sc-desc">Canal overflow inundates River Bridge and Market; ambulance water reroutes</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Simulation Live Audit Event Log -->
+          <div class="card sim-lab-log-card">
+            <div class="card-title">
+              <span>SIMULATION TELEMETRY &amp; EVENT LOG</span>
+              <button class="btn-sm btn-outline" id="btn-clear-log">CLEAR</button>
+            </div>
+            <div class="event-audit-log scrollbar-cyber" id="event-audit-log">
+              <!-- Chronological events populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </main>
 
-  <!-- MODAL: REPORT EMERGENCY -->
+  <!-- ======================================================================
+       MODAL: REPORT EMERGENCY INCIDENT
+       ====================================================================== -->
   <div class="modal-backdrop" id="modal-report" style="display: none;">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -317,7 +775,9 @@
     </div>
   </div>
 
-  <!-- MODAL: COMMISSION RESOURCE -->
+  <!-- ======================================================================
+       MODAL: COMMISSION RESPONSE UNIT
+       ====================================================================== -->
   <div class="modal-backdrop" id="modal-resource" style="display: none;">
     <div class="modal-dialog">
       <div class="modal-header">
@@ -372,7 +832,143 @@
     </div>
   </div>
 
-  <!-- LOAD INITIAL JS DATA BRIDGE (Ensures 100% offline file:// capability) -->
+  <!-- ======================================================================
+       MODAL: EDIT EMERGENCY INCIDENT
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modal-edit-emergency" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><span class="icon">✏️</span> EDIT INCIDENT RECORD // <span id="edit-emg-id-title">INC-000</span></div>
+        <button class="modal-close" id="btn-close-edit-emg-modal">&times;</button>
+      </div>
+      <form id="form-edit-emergency">
+        <input type="hidden" id="edit-emg-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-emg-status">Status</label>
+              <select id="edit-emg-status" class="select-cyber" required>
+                <option value="0">Pending</option>
+                <option value="1">Active (Dispatched)</option>
+                <option value="2">Resolved</option>
+                <option value="3">Cancelled</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-emg-severity">Severity Level</label>
+              <select id="edit-emg-severity" class="select-cyber" required>
+                <option value="1">1 - Low</option>
+                <option value="2">2 - Medium</option>
+                <option value="3">3 - High</option>
+                <option value="4">4 - Critical</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-emg-affected">Casualties / Affected</label>
+            <input type="number" id="edit-emg-affected" class="input-cyber" min="0" max="10000" required>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-emg-desc">Description</label>
+            <textarea id="edit-emg-desc" class="input-cyber" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" id="btn-delete-emergency"><span class="icon">🗑️</span> DELETE ALARM</button>
+          <button type="submit" class="btn btn-primary"><span class="icon">💾</span> SAVE CHANGES</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: EDIT FLEET UNIT
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modal-edit-resource" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><span class="icon">🛡️</span> EDIT FLEET UNIT // <span id="edit-res-id-title">UNIT-00</span></div>
+        <button class="modal-close" id="btn-close-edit-res-modal">&times;</button>
+      </div>
+      <form id="form-edit-resource">
+        <input type="hidden" id="edit-res-id">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-res-status">Readiness Status</label>
+              <select id="edit-res-status" class="select-cyber" required>
+                <option value="0">Available (Ready)</option>
+                <option value="1">Dispatched (En Route)</option>
+                <option value="2">Unavailable (Maintenance)</option>
+                <option value="3">Returning to Base</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-res-current-node">Current Sector</label>
+              <select id="edit-res-current-node" class="select-cyber" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-res-base-node">Home Base Station</label>
+              <select id="edit-res-base-node" class="select-cyber" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="edit-res-capacity">Capacity</label>
+              <input type="number" id="edit-res-capacity" class="input-cyber" min="1" max="500" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" id="btn-delete-resource"><span class="icon">🗑️</span> DECOMMISSION</button>
+          <button type="submit" class="btn btn-primary"><span class="icon">💾</span> SAVE CHANGES</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: KEYBOARD SHORTCUTS CHEAT SHEET
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modal-shortcuts" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><span class="icon">⌨️</span> ARES TACTICAL HOTKEYS &amp; COMMAND SHORTCUTS</div>
+        <button class="modal-close" id="btn-close-shortcuts-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcuts-grid">
+          <div class="sc-item"><kbd>1</kbd> ➔ Tactical GIS Map</div>
+          <div class="sc-item"><kbd>2</kbd> ➔ Binary Max-Heap Visualizer</div>
+          <div class="sc-item"><kbd>3</kbd> ➔ Dijkstra Routing Lab</div>
+          <div class="sc-item"><kbd>4</kbd> ➔ Incident Registry</div>
+          <div class="sc-item"><kbd>5</kbd> ➔ Fleet Matrix</div>
+          <div class="sc-item"><kbd>6</kbd> ➔ Crisis Analytics</div>
+          <div class="sc-item"><kbd>7</kbd> ➔ Crisis Simulator</div>
+          <div class="sc-item"><kbd>D</kbd> ➔ Auto-Dispatch Top Crisis</div>
+          <div class="sc-item"><kbd>R</kbd> ➔ Calculate Shortest Route</div>
+          <div class="sc-item"><kbd>Space</kbd> ➔ Start/Pause Sim Clock</div>
+          <div class="sc-item"><kbd>S</kbd> ➔ Step Sim +5 min</div>
+          <div class="sc-item"><kbd>B</kbd> ➔ Toggle Road Block Mode</div>
+          <div class="sc-item"><kbd>M</kbd> ➔ Mute/Unmute Audio</div>
+          <div class="sc-item"><kbd>V</kbd> ➔ Toggle Tactical Voice</div>
+          <div class="sc-item"><kbd>Esc</kbd> ➔ Close Active Modal / Deselect</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btn-dismiss-shortcuts">DISMISS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAD INITIAL JS DATA BRIDGE (Fallback for 100% offline file:// compatibility) -->
   <script src="live_data.js"></script>
   <!-- MAIN APPLICATION CONTROLLER -->
   <script src="app.js"></script>
