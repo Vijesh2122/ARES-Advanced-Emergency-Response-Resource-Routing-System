@@ -680,11 +680,11 @@
               </button>
               <button class="btn-scenario" data-scenario="chemical">
                 <div class="sc-title">☣️ Industrial Chemical Breach</div>
-                <div class="sc-desc">HazMat toxic cloud at Industrial Zone with blocked surrounding arteries</div>
+                <div class="sc-desc">Illustrative HazMat scenario at Kodambakkam with blocked graph links</div>
               </button>
               <button class="btn-scenario" data-scenario="flood">
                 <div class="sc-title">🌊 River Flash Flood</div>
-                <div class="sc-desc">Canal overflow inundates River Bridge and Market; ambulance water reroutes</div>
+                <div class="sc-desc">Illustrative flood scenario across Adyar and T. Nagar graph zones</div>
               </button>
             </div>
           </div>
@@ -723,7 +723,7 @@
             <div class="ai-core-info">
               <div class="ai-core-title">
                 <span>A.E.G.I.S. // TACTICAL NEURAL CORE v4.0</span>
-                <span class="badge badge-ai-mode" id="badge-ai-model">NEURAL RAG CORE</span>
+                <span class="badge badge-ai-mode" id="badge-ai-model">SERVER RAG</span>
               </div>
               <div class="ai-core-status-text" id="ai-core-status-text">
                 <span class="status-pulse-dot"></span> NEURAL INFERENCE ONLINE // KNOWLEDGE VAULT ACTIVE
@@ -737,8 +737,8 @@
               <span class="icon">🎙️</span> VOICE: <span id="lbl-ai-voice-status">ON</span>
             </button>
             <!-- LLM Uplink / API Key Config -->
-            <button class="btn-sm btn-outline-ai" id="btn-ai-config-modal" title="Configure Cloud LLM API Key (Gemini / OpenAI)">
-              <span class="icon">🔑</span> API UPLINK
+            <button class="btn-sm btn-outline-ai" id="btn-ai-config-modal" title="View server-side RAG setup">
+              <span class="icon">🔒</span> RAG SETUP
             </button>
             <!-- Clear Chat -->
             <button class="btn-sm btn-outline-ai" id="btn-ai-clear-chat" title="Clear Tactical Briefing">
@@ -762,9 +762,9 @@
               <div class="dropzone-glow"></div>
               <div class="dropzone-icon">📁</div>
               <div class="dropzone-title">DOCUMENT INGESTION VAULT</div>
-              <div class="dropzone-sub">Drag &amp; drop files or click to ingest into Neural Memory</div>
-              <div class="dropzone-formats">PDF, TXT, MD, CSV, JSON, LOG, CODE</div>
-              <input type="file" id="ai-file-input" multiple accept=".pdf,.txt,.md,.markdown,.json,.csv,.c,.h,.py,.js,.html,.css,.log" style="display:none;">
+              <div class="dropzone-sub">Drag &amp; drop a PDF or click to extract and index it securely</div>
+              <div class="dropzone-formats">PDF • 15 MB maximum • digital text required</div>
+              <input type="file" id="ai-file-input" multiple accept="application/pdf,.pdf" style="display:none;">
               <button type="button" class="btn btn-sm btn-primary-ai" id="btn-trigger-upload">
                 <span class="icon">⬆️</span> INGEST FILES
               </button>
@@ -773,20 +773,11 @@
             <!-- Ingested Files Shelf -->
             <div class="card ai-card-shelf">
               <div class="card-title">
-                <span>INDEXED KNOWLEDGE SOURCES (<span id="vault-doc-count">1</span>)</span>
-                <span class="badge badge-meta" id="vault-chunk-count">36 CHUNKS</span>
+                <span>INDEXED KNOWLEDGE SOURCES (<span id="vault-doc-count">0</span>)</span>
+                <span class="badge badge-meta" id="vault-chunk-count">0 CHUNKS</span>
               </div>
               <div class="ai-sources-list scrollbar-cyber" id="ai-sources-list">
-                <!-- System Core Knowledge always present -->
-                <div class="ai-source-item system-source">
-                  <div class="source-icon">🛰️</div>
-                  <div class="source-details">
-                    <div class="source-name">ARES System Core Knowledge</div>
-                    <div class="source-meta">12 Sectors • 16 Roads • Dijkstra • Max-Heap</div>
-                  </div>
-                  <span class="badge badge-cyan">CORE</span>
-                </div>
-                <!-- Dynamic uploaded files populated here -->
+                <div class="source-meta">No uploaded PDFs in this private browser session.</div>
               </div>
             </div>
 
@@ -822,7 +813,7 @@
               <div class="ai-chips-container">
                 <button type="button" class="ai-chip" data-prompt="Assess current incident triage status and report the highest-priority emergency.">🚨 Top Priority Crisis</button>
                 <button type="button" class="ai-chip" data-prompt="Explain the mathematical 4-factor priority scoring formula used by the Max-Heap.">📐 Priority Formula</button>
-                <button type="button" class="ai-chip" data-prompt="Calculate the fastest route from Central HQ (0) to Airport (5) and list road minutes.">⚡ HQ to Airport Route</button>
+                <button type="button" class="ai-chip" data-prompt="Calculate the shortest estimated graph route from Thiruvottiyur (0) to Perambur (5).">⚡ Thiruvottiyur to Perambur</button>
                 <button type="button" class="ai-chip" data-prompt="Summarize the key information and operational protocols from all ingested files.">📄 Summarize Ingested Files</button>
                 <button type="button" class="ai-chip" data-prompt="Audit fleet readiness and recommend optimal resource allocation.">🛡️ Fleet Readiness Audit</button>
                 <button type="button" class="ai-chip" data-prompt="Inspect blocked roads and calculate bypass detours.">🚧 Road Obstruction Audit</button>
@@ -849,9 +840,9 @@
                   </div>
                   <div class="ai-msg-content">
                     <p><strong>Greetings, Commander.</strong> I am <strong>A.E.G.I.S.</strong> (Autonomous Emergency Geospatial Intelligence Synthesizer), the neural intelligence core integrated into the ARES operations matrix.</p>
-                    <p>I have direct real-time telemetry access to all <strong>12 city sectors, 16 road arteries, Max-Heap priority queue, and fleet units</strong>. Furthermore, you can <strong>upload any documents (PDFs, text files, CSV tables, incident logs)</strong> to my Knowledge Vault, and I will perform semantic retrieval and contextual synthesis to answer your tactical inquiries.</p>
+                    <p>I have access to the ARES simulation telemetry for <strong>12 geographical response zones, 16 estimated graph links, the Max-Heap priority queue, and fleet units</strong>. You can also <strong>upload digital-text PDFs</strong> to the Knowledge Vault for server-side semantic retrieval and cited answers.</p>
                     <div class="ai-welcome-features">
-                      <div class="feature-item"><span>📁</span> <strong>Document RAG:</strong> Drag &amp; drop any files into the left vault to query them with citations.</div>
+                      <div class="feature-item"><span>📁</span> <strong>Document RAG:</strong> Drag &amp; drop a digital-text PDF, select it in the source shelf, then query it with citations.</div>
                       <div class="feature-item"><span>⚡</span> <strong>Live Telemetry:</strong> Ask about real-time routes, road blockages, and priority scores.</div>
                       <div class="feature-item"><span>🎙️</span> <strong>Tactical Voice:</strong> Audio feedback and computerized vocal announcements.</div>
                     </div>
@@ -894,7 +885,7 @@
               </div>
               <div class="ai-input-footer">
                 <span class="footer-hint"><kbd>Enter</kbd> to transmit &bull; <kbd>Shift+Enter</kbd> for newline &bull; <kbd>8</kbd> to switch to AI Intel Hub</span>
-                <span class="footer-privacy">🔒 Client-Side RAG Engine &bull; Ingested documents stay private in your browser session</span>
+                <span class="footer-privacy">🔒 Server-side RAG &bull; documents are private to this browser session</span>
               </div>
             </div>
 
@@ -1179,44 +1170,15 @@
   <div class="modal-backdrop" id="modal-ai-config" style="display: none;">
     <div class="modal-dialog">
       <div class="modal-header">
-        <div class="modal-title"><span class="icon">🔑</span> A.E.G.I.S. // CLOUD LLM API UPLINK</div>
+        <div class="modal-title"><span class="icon">🔒</span> A.E.G.I.S. // SERVER-SIDE RAG SETUP</div>
         <button class="modal-close" id="btn-close-ai-config-modal">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5;">
-          A.E.G.I.S. operates by default with a zero-setup, 100% offline <strong>Built-in Client-Side Neural RAG Engine</strong>. You can optionally link your own Google Gemini or OpenAI API key for cutting-edge live LLM inference:
-        </p>
-
-        <div class="form-group">
-          <label for="ai-provider-select">Inference Engine</label>
-          <select id="ai-provider-select" class="select-cyber">
-            <option value="builtin" selected>Built-in Neural RAG Core (Free, Fast, 100% Private &amp; Offline)</option>
-            <option value="gemini">Google Gemini API (Gemini 2.5 / 1.5 Flash)</option>
-            <option value="openai">OpenAI API (GPT-4o / GPT-4o-mini)</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="group-api-key" style="display: none;">
-          <label for="ai-api-key-input">API Key</label>
-          <input type="password" id="ai-api-key-input" class="input-cyber" placeholder="Enter AIzaSy... (Gemini) or sk-... (OpenAI)">
-          <small style="color: var(--text-muted); display: block; margin-top: 4px;">Keys are stored strictly in your browser's LocalStorage and sent only directly to the model endpoint.</small>
-        </div>
-
-        <div class="form-group" id="group-model-name" style="display: none;">
-          <label for="ai-model-select">Target Model</label>
-          <select id="ai-model-select" class="select-cyber">
-            <option value="gemini-1.5-flash">gemini-1.5-flash (Ultra Fast &amp; High Quality)</option>
-            <option value="gemini-2.0-flash">gemini-2.0-flash (Latest Frontier Model)</option>
-            <option value="gpt-4o-mini">gpt-4o-mini (OpenAI Fast)</option>
-            <option value="gpt-4o">gpt-4o (OpenAI Flagship)</option>
-          </select>
-        </div>
-
-        <div id="ai-test-result" style="display: none; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; font-family: var(--font-mono);"></div>
+        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5;">PDF text is extracted, embedded, retrieved and answered by the local ARES server. The browser never receives an AI API key.</p>
+        <p style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Set <code>OPENAI_API_KEY</code> in the server environment, install <code>requirements.txt</code>, and restart <code>server.py</code>. Documents are isolated to this browser session and can be deleted from the source shelf.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline" id="btn-test-ai-key">TEST UPLINK</button>
-        <button type="button" class="btn btn-primary" id="btn-save-ai-config">SAVE CONFIGURATION</button>
+        <button type="button" class="btn btn-primary" id="btn-close-ai-config">CLOSE</button>
       </div>
     </div>
   </div>

@@ -1,177 +1,37 @@
 {
-  "timestamp": 1792581619,
+  "timestamp": 1792609063,
   "simMinutes": 0,
   "nodes": [
-    {
-      "id": 0,
-      "label": "Central HQ",
-      "x": 48,
-      "y": 48
-    },
-    {
-      "id": 1,
-      "label": "North Station",
-      "x": 34,
-      "y": 18
-    },
-    {
-      "id": 2,
-      "label": "City Hospital",
-      "x": 20,
-      "y": 42
-    },
-    {
-      "id": 3,
-      "label": "University",
-      "x": 32,
-      "y": 75
-    },
-    {
-      "id": 4,
-      "label": "Tech Park",
-      "x": 58,
-      "y": 22
-    },
-    {
-      "id": 5,
-      "label": "Airport",
-      "x": 84,
-      "y": 16
-    },
-    {
-      "id": 6,
-      "label": "River Bridge",
-      "x": 38,
-      "y": 58
-    },
-    {
-      "id": 7,
-      "label": "Old Town",
-      "x": 18,
-      "y": 86
-    },
-    {
-      "id": 8,
-      "label": "Industrial Zone",
-      "x": 78,
-      "y": 52
-    },
-    {
-      "id": 9,
-      "label": "East Shelter",
-      "x": 92,
-      "y": 42
-    },
-    {
-      "id": 10,
-      "label": "West Market",
-      "x": 62,
-      "y": 76
-    },
-    {
-      "id": 11,
-      "label": "South Station",
-      "x": 46,
-      "y": 94
-    }
+    {"id": 0, "label": "Thiruvottiyur", "latitude": 13.15823, "longitude": 80.30181, "x": 92, "y": 15},
+    {"id": 1, "label": "Manali", "latitude": 13.18106, "longitude": 80.26942, "x": 61, "y": 8},
+    {"id": 2, "label": "Madhavaram", "latitude": 13.14210, "longitude": 80.23240, "x": 27, "y": 23},
+    {"id": 3, "label": "Tondiarpet", "latitude": 13.12777, "longitude": 80.28959, "x": 83, "y": 31},
+    {"id": 4, "label": "Royapuram", "latitude": 13.11462, "longitude": 80.29403, "x": 87, "y": 39},
+    {"id": 5, "label": "Perambur", "latitude": 13.11212, "longitude": 80.24502, "x": 39, "y": 40},
+    {"id": 6, "label": "Anna Nagar", "latitude": 13.08825, "longitude": 80.20734, "x": 12, "y": 53},
+    {"id": 7, "label": "T. Nagar", "latitude": 13.04180, "longitude": 80.23410, "x": 29, "y": 76},
+    {"id": 8, "label": "Kodambakkam", "latitude": 13.04921, "longitude": 80.22428, "x": 21, "y": 71},
+    {"id": 9, "label": "Guindy", "latitude": 13.00871, "longitude": 80.22037, "x": 18, "y": 91},
+    {"id": 10, "label": "Adyar", "latitude": 13.00645, "longitude": 80.25778, "x": 50, "y": 92},
+    {"id": 11, "label": "Sholinganallur", "latitude": 12.89354, "longitude": 80.23206, "x": 27, "y": 99}
   ],
   "roads": [
-    {
-      "from": 0,
-      "to": 1,
-      "minutes": 4,
-      "blocked": false
-    },
-    {
-      "from": 0,
-      "to": 2,
-      "minutes": 3,
-      "blocked": false
-    },
-    {
-      "from": 0,
-      "to": 3,
-      "minutes": 5,
-      "blocked": false
-    },
-    {
-      "from": 1,
-      "to": 4,
-      "minutes": 6,
-      "blocked": false
-    },
-    {
-      "from": 2,
-      "to": 4,
-      "minutes": 4,
-      "blocked": false
-    },
-    {
-      "from": 2,
-      "to": 6,
-      "minutes": 5,
-      "blocked": false
-    },
-    {
-      "from": 3,
-      "to": 7,
-      "minutes": 4,
-      "blocked": false
-    },
-    {
-      "from": 4,
-      "to": 5,
-      "minutes": 7,
-      "blocked": false
-    },
-    {
-      "from": 4,
-      "to": 8,
-      "minutes": 5,
-      "blocked": false
-    },
-    {
-      "from": 5,
-      "to": 9,
-      "minutes": 6,
-      "blocked": false
-    },
-    {
-      "from": 6,
-      "to": 7,
-      "minutes": 3,
-      "blocked": false
-    },
-    {
-      "from": 6,
-      "to": 10,
-      "minutes": 4,
-      "blocked": false
-    },
-    {
-      "from": 7,
-      "to": 11,
-      "minutes": 6,
-      "blocked": false
-    },
-    {
-      "from": 8,
-      "to": 9,
-      "minutes": 3,
-      "blocked": false
-    },
-    {
-      "from": 8,
-      "to": 10,
-      "minutes": 5,
-      "blocked": false
-    },
-    {
-      "from": 10,
-      "to": 11,
-      "minutes": 4,
-      "blocked": false
-    }
+    {"from": 0, "to": 1, "minutes": 4, "blocked": false},
+    {"from": 0, "to": 3, "minutes": 5, "blocked": false},
+    {"from": 1, "to": 2, "minutes": 6, "blocked": false},
+    {"from": 2, "to": 5, "minutes": 4, "blocked": false},
+    {"from": 2, "to": 6, "minutes": 5, "blocked": false},
+    {"from": 3, "to": 4, "minutes": 3, "blocked": false},
+    {"from": 3, "to": 5, "minutes": 5, "blocked": false},
+    {"from": 4, "to": 5, "minutes": 6, "blocked": false},
+    {"from": 5, "to": 6, "minutes": 4, "blocked": false},
+    {"from": 5, "to": 8, "minutes": 5, "blocked": false},
+    {"from": 6, "to": 8, "minutes": 3, "blocked": false},
+    {"from": 7, "to": 8, "minutes": 4, "blocked": false},
+    {"from": 7, "to": 9, "minutes": 6, "blocked": false},
+    {"from": 7, "to": 10, "minutes": 5, "blocked": false},
+    {"from": 9, "to": 10, "minutes": 3, "blocked": false},
+    {"from": 10, "to": 11, "minutes": 7, "blocked": false}
   ],
   "emergencies": [
     {
@@ -179,13 +39,13 @@
       "reporter": "Dr. Alan Vance",
       "description": "Multi-story server lab electrical fire spreading rapidly",
       "nodeId": 4,
-      "location": "Tech Park",
+      "location": "Royapuram",
       "type": 0,
       "typeStr": "Fire",
       "severity": 3,
       "severityStr": "HIGH",
       "affected": 85,
-      "priority": 64.12500000000001,
+      "priority": 64.13,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -196,13 +56,13 @@
       "reporter": "Officer Chen",
       "description": "Multi-car pileup with severe trauma injuries on highway",
       "nodeId": 6,
-      "location": "River Bridge",
+      "location": "Anna Nagar",
       "type": 1,
       "typeStr": "Medical",
       "severity": 4,
       "severityStr": "CRITICAL",
       "affected": 14,
-      "priority": 73.35000000000001,
+      "priority": 73.35,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -213,13 +73,13 @@
       "reporter": "Site Mgr. Kovacs",
       "description": "Corrosive chemical container breach, toxic vapor cloud",
       "nodeId": 8,
-      "location": "Industrial Zone",
+      "location": "Kodambakkam",
       "type": 5,
       "typeStr": "HazMat",
       "severity": 3,
       "severityStr": "HIGH",
       "affected": 32,
-      "priority": 64.8,
+      "priority": 64.80,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -228,9 +88,9 @@
     {
       "id": "INC-A04",
       "reporter": "Patrol Unit 4",
-      "description": "Old building masonry fa\u00e7ade collapse over pedestrian lane",
+      "description": "Old building masonry façade collapse over pedestrian lane",
       "nodeId": 7,
-      "location": "Old Town",
+      "location": "T. Nagar",
       "type": 3,
       "typeStr": "Accident",
       "severity": 2,
@@ -247,7 +107,7 @@
       "reporter": "HQ Dispatcher",
       "description": "Sudden cardiac arrest at public concourse area",
       "nodeId": 0,
-      "location": "Central HQ",
+      "location": "Thiruvottiyur",
       "type": 1,
       "typeStr": "Medical",
       "severity": 4,
@@ -264,13 +124,13 @@
       "reporter": "Market Security",
       "description": "Drainage backup resulting in knee-deep flash flooding",
       "nodeId": 10,
-      "location": "West Market",
+      "location": "Adyar",
       "type": 2,
       "typeStr": "Flood",
       "severity": 1,
       "severityStr": "LOW",
       "affected": 40,
-      "priority": 40,
+      "priority": 40.00,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",

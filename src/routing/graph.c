@@ -158,22 +158,15 @@ void graph_print_network(void) {
 }
 
 void graph_load_demo_city(void) {
-    static const char *labels[] = { "Central HQ", "North Station", "City Hospital", "University", "Tech Park", "Airport", "River Bridge", "Old Town", "Industrial Zone", "East Shelter", "West Market", "South Station" };
+    /* Chennai geographical response zones. Coordinates are canvas projections;
+       the web telemetry adds the verified latitude/longitude centroids. */
+    static const char *labels[] = { "Thiruvottiyur", "Manali", "Madhavaram", "Tondiarpet", "Royapuram", "Perambur", "Anna Nagar", "T. Nagar", "Kodambakkam", "Guindy", "Adyar", "Sholinganallur" };
     static const int coords[][2] = {
-        {48, 48}, /* 0: Central HQ */
-        {34, 18}, /* 1: North Station */
-        {20, 42}, /* 2: City Hospital */
-        {32, 75}, /* 3: University */
-        {58, 22}, /* 4: Tech Park */
-        {84, 16}, /* 5: Airport */
-        {38, 58}, /* 6: River Bridge */
-        {18, 86}, /* 7: Old Town */
-        {78, 52}, /* 8: Industrial Zone */
-        {92, 42}, /* 9: East Shelter */
-        {62, 76}, /* 10: West Market */
-        {46, 94}  /* 11: South Station */
+        {92, 15}, {61, 8}, {27, 23}, {83, 31}, {87, 39}, {39, 40},
+        {12, 53}, {29, 76}, {21, 71}, {18, 91}, {50, 92}, {27, 99}
     };
-    static const int roads[][3] = {{0,1,4},{0,2,3},{0,3,5},{1,4,6},{2,4,4},{2,6,5},{3,7,4},{4,5,7},{4,8,5},{5,9,6},{6,7,3},{6,10,4},{7,11,6},{8,9,3},{8,10,5},{10,11,4}};
+    /* Estimated graph weights for classroom routing only, not road travel times. */
+    static const int roads[][3] = {{0,1,4},{0,3,5},{1,2,6},{2,5,4},{2,6,5},{3,4,3},{3,5,5},{4,5,6},{5,6,4},{5,8,5},{6,8,3},{8,7,4},{7,9,6},{7,10,5},{9,10,3},{10,11,7}};
     graph_init();
     for (int i = 0; i < (int)(sizeof(labels) / sizeof(labels[0])); ++i) {
         graph_add_node(i, labels[i]);

@@ -23,6 +23,8 @@ install_manifest.txt
 # Data (keep sample files, ignore generated)
 data/*.bin
 data/*.tmp
+data/ares_rag.sqlite
+.env
 
 # OS
 .DS_Store

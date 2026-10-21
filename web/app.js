@@ -142,36 +142,19 @@
     timestamp: 1792155858,
     simMinutes: 0,
     nodes: [
-      { id: 0,  label: "Central HQ",      x: 48, y: 48 },
-      { id: 1,  label: "North Station",   x: 34, y: 18 },
-      { id: 2,  label: "City Hospital",   x: 20, y: 42 },
-      { id: 3,  label: "University",      x: 32, y: 75 },
-      { id: 4,  label: "Tech Park",       x: 58, y: 22 },
-      { id: 5,  label: "Airport",         x: 84, y: 16 },
-      { id: 6,  label: "River Bridge",    x: 38, y: 58 },
-      { id: 7,  label: "Old Town",        x: 18, y: 86 },
-      { id: 8,  label: "Industrial Zone", x: 78, y: 52 },
-      { id: 9,  label: "East Shelter",    x: 92, y: 42 },
-      { id: 10, label: "West Market",     x: 62, y: 76 },
-      { id: 11, label: "South Station",   x: 46, y: 94 }
+      { id: 0, label: "Thiruvottiyur", latitude: 13.15823, longitude: 80.30181, x: 92, y: 15 }, { id: 1, label: "Manali", latitude: 13.18106, longitude: 80.26942, x: 61, y: 8 },
+      { id: 2, label: "Madhavaram", latitude: 13.14210, longitude: 80.23240, x: 27, y: 23 }, { id: 3, label: "Tondiarpet", latitude: 13.12777, longitude: 80.28959, x: 83, y: 31 },
+      { id: 4, label: "Royapuram", latitude: 13.11462, longitude: 80.29403, x: 87, y: 39 }, { id: 5, label: "Perambur", latitude: 13.11212, longitude: 80.24502, x: 39, y: 40 },
+      { id: 6, label: "Anna Nagar", latitude: 13.08825, longitude: 80.20734, x: 12, y: 53 }, { id: 7, label: "T. Nagar", latitude: 13.04180, longitude: 80.23410, x: 29, y: 76 },
+      { id: 8, label: "Kodambakkam", latitude: 13.04921, longitude: 80.22428, x: 21, y: 71 }, { id: 9, label: "Guindy", latitude: 13.00871, longitude: 80.22037, x: 18, y: 91 },
+      { id: 10, label: "Adyar", latitude: 13.00645, longitude: 80.25778, x: 50, y: 92 }, { id: 11, label: "Sholinganallur", latitude: 12.89354, longitude: 80.23206, x: 27, y: 99 }
     ],
     roads: [
       { from: 0, to: 1, minutes: 4, blocked: false },
-      { from: 0, to: 2, minutes: 3, blocked: false },
-      { from: 0, to: 3, minutes: 5, blocked: false },
-      { from: 1, to: 4, minutes: 6, blocked: false },
-      { from: 2, to: 4, minutes: 4, blocked: false },
-      { from: 2, to: 6, minutes: 5, blocked: false },
-      { from: 3, to: 7, minutes: 4, blocked: false },
-      { from: 4, to: 5, minutes: 7, blocked: false },
-      { from: 4, to: 8, minutes: 5, blocked: false },
-      { from: 5, to: 9, minutes: 6, blocked: false },
-      { from: 6, to: 7, minutes: 3, blocked: false },
-      { from: 6, to: 10, minutes: 4, blocked: false },
-      { from: 7, to: 11, minutes: 6, blocked: false },
-      { from: 8, to: 9, minutes: 3, blocked: false },
-      { from: 8, to: 10, minutes: 5, blocked: false },
-      { from: 10, to: 11, minutes: 4, blocked: false }
+      { from: 0, to: 3, minutes: 5, blocked: false }, { from: 1, to: 2, minutes: 6, blocked: false }, { from: 2, to: 5, minutes: 4, blocked: false }, { from: 2, to: 6, minutes: 5, blocked: false },
+      { from: 3, to: 4, minutes: 3, blocked: false }, { from: 3, to: 5, minutes: 5, blocked: false }, { from: 4, to: 5, minutes: 6, blocked: false }, { from: 5, to: 6, minutes: 4, blocked: false },
+      { from: 5, to: 8, minutes: 5, blocked: false }, { from: 6, to: 8, minutes: 3, blocked: false }, { from: 8, to: 7, minutes: 4, blocked: false }, { from: 7, to: 9, minutes: 6, blocked: false },
+      { from: 7, to: 10, minutes: 5, blocked: false }, { from: 9, to: 10, minutes: 3, blocked: false }, { from: 10, to: 11, minutes: 7, blocked: false }
     ],
     emergencies: [
       {
@@ -179,7 +162,7 @@
         reporter: "Dr. Alan Vance",
         description: "Multi-story server lab electrical fire spreading rapidly",
         nodeId: 4,
-        location: "Tech Park",
+        location: "Royapuram",
         type: 0,
         typeStr: "Fire",
         severity: 3,
@@ -196,7 +179,7 @@
         reporter: "Officer Chen",
         description: "Multi-car pileup with severe trauma injuries on highway",
         nodeId: 6,
-        location: "River Bridge",
+        location: "Anna Nagar",
         type: 1,
         typeStr: "Medical",
         severity: 4,
@@ -213,7 +196,7 @@
         reporter: "Site Mgr. Kovacs",
         description: "Corrosive chemical container breach, toxic vapor cloud",
         nodeId: 8,
-        location: "Industrial Zone",
+        location: "Kodambakkam",
         type: 5,
         typeStr: "HazMat",
         severity: 3,
@@ -230,7 +213,7 @@
         reporter: "Patrol Unit 4",
         description: "Old building masonry façade collapse over pedestrian lane",
         nodeId: 7,
-        location: "Old Town",
+        location: "T. Nagar",
         type: 3,
         typeStr: "Accident",
         severity: 2,
@@ -247,7 +230,7 @@
         reporter: "HQ Dispatcher",
         description: "Sudden cardiac arrest at public concourse area",
         nodeId: 0,
-        location: "Central HQ",
+        location: "Thiruvottiyur",
         type: 1,
         typeStr: "Medical",
         severity: 4,
@@ -264,7 +247,7 @@
         reporter: "Market Security",
         description: "Drainage backup resulting in knee-deep flash flooding",
         nodeId: 10,
-        location: "West Market",
+        location: "Adyar",
         type: 2,
         typeStr: "Flood",
         severity: 1,
@@ -887,7 +870,8 @@
           <span>SECTOR [${node.id < 10 ? '0' + node.id : node.id}] ${node.label}</span>
           <span class="badge badge-cyan">ONLINE</span>
         </div>
-        <div class="insp-row"><span>Coordinates:</span> <span class="insp-val">${node.x}.00E, ${node.y}.00N</span></div>
+        <div class="insp-row"><span>Coordinates:</span> <span class="insp-val">${node.latitude?.toFixed(5) || '—'}°N, ${node.longitude?.toFixed(5) || '—'}°E</span></div>
+        <div class="insp-row"><span>Classification:</span> <span class="insp-val">GEOGRAPHICAL RESPONSE ZONE</span></div>
         <div class="insp-row"><span>Active Incidents:</span> <span class="insp-val ${activeEmergencies.length ? 'text-red' : 'text-green'}">${activeEmergencies.length} Active</span></div>
         <div class="insp-row"><span>Stationed Units:</span> <span class="insp-val text-cyan">${stationFleet.length} Units</span></div>
       </div>
@@ -1788,8 +1772,10 @@
 
       // Update Coordinate Readout
       const { gx, gy } = screenToGrid(mouseX, mouseY);
-      document.getElementById('coord-readout').textContent =
-        `GRID: ${gx.toFixed(1)}E, ${gy.toFixed(1)}N ${hoveredNodeId !== null ? `// SECTOR-${hoveredNodeId}` : ''}`;
+      const hovered = state.nodes.find(n => n.id === hoveredNodeId);
+      document.getElementById('coord-readout').textContent = hovered
+        ? `${hovered.label}: ${hovered.latitude?.toFixed(5) || '—'}°N, ${hovered.longitude?.toFixed(5) || '—'}°E`
+        : `CHENNAI MAP GRID: ${gx.toFixed(1)}E, ${gy.toFixed(1)}N`;
     });
 
     canvas.addEventListener('wheel', (e) => {
@@ -2122,14 +2108,14 @@
     if (type === 'earthquake') {
       voice.speak('Emergency scenario activated. Severe 7.2 Richter seismic event.');
       // Block river bridge and university road
-      state.roads.find(r => r.from === 6 && r.to === 7).blocked = true;
-      state.roads.find(r => r.from === 3 && r.to === 7).blocked = true;
+      state.roads.find(r => r.from === 8 && r.to === 7).blocked = true;
+      state.roads.find(r => r.from === 7 && r.to === 9).blocked = true;
       state.emergencies.unshift({
         id: `INC-EQ1`,
         reporter: "USGS Seismic Network",
         description: "Catastrophic structural masonry collapse, multiple casualties trapped",
         nodeId: 7,
-        location: "Old Town",
+        location: "T. Nagar",
         type: 4,
         typeStr: "Earthquake",
         severity: 4,
@@ -2141,16 +2127,16 @@
         assignedResource: "",
         reportedAt: Math.floor(Date.now() / 1000)
       });
-      logEvent('SCENARIO: 7.2 Richter Earthquake activated! Old Town isolated.', 'alarm');
+      logEvent('SCENARIO: 7.2 Richter Earthquake simulation activated near T. Nagar.', 'alarm');
     } else if (type === 'chemical') {
       voice.speak('Emergency scenario activated. Hazardous chemical vapor breach.');
-      state.roads.find(r => r.from === 4 && r.to === 8).blocked = true;
+      state.roads.find(r => r.from === 5 && r.to === 8).blocked = true;
       state.emergencies.unshift({
         id: `INC-HM1`,
         reporter: "Environmental Safety Agency",
         description: "Pressurized chlorine gas leak threatening adjacent commercial zone",
         nodeId: 8,
-        location: "Industrial Zone",
+        location: "Kodambakkam",
         type: 5,
         typeStr: "HazMat",
         severity: 4,
@@ -2165,14 +2151,14 @@
       logEvent('SCENARIO: Industrial Chemical Breach activated! HazMat containment required.', 'alarm');
     } else if (type === 'flood') {
       voice.speak('Emergency scenario activated. Flash flood inundation.');
-      state.roads.find(r => r.from === 6 && r.to === 10).blocked = true;
+      state.roads.find(r => r.from === 9 && r.to === 10).blocked = true;
       state.roads.find(r => r.from === 2 && r.to === 6).blocked = true;
       state.emergencies.unshift({
         id: `INC-FL1`,
         reporter: "Meteorological Service",
         description: "Rapid canal surcharge inundating low-lying residential sectors",
         nodeId: 6,
-        location: "River Bridge",
+        location: "Anna Nagar",
         type: 2,
         typeStr: "Flood",
         severity: 3,
@@ -2761,28 +2747,15 @@
       init() {
         // Built-in Core Knowledge of ARES
         this.addDocument('ares-core', 'ARES Tactical Architecture & Operational Core', `
-ARES is an enterprise-grade tactical command simulation that pairs a high-performance C11 data-structures engine with a cybernetic web operations center (v3.5 PRO).
+ARES is an academic routing simulation with a C11 data-structures engine and a web operations center.
 Operators register incidents and response units, inspect real-time telemetry, calculate shortest routes with disaster road-block re-routing, and auto-dispatch units using prioritized Max-Heap triage and Dijkstra's algorithm.
 
-The city consists of 12 tactical sectors:
-[0] Central HQ (48, 48) - Main command center and dispatch headquarters.
-[1] North Station (34, 18) - Transit hub and northern rail terminus.
-[2] City Hospital (20, 42) - Level 1 trauma center and main medical base.
-[3] University (32, 75) - Academic campus, research labs, high population density.
-[4] Tech Park (58, 22) - Server centers, corporate offices, high electrical fire risk.
-[5] Airport (84, 16) - Major international airport, mass casualty runways.
-[6] River Bridge (38, 58) - Strategic river crossing, prone to pileups and flash flooding.
-[7] Old Town (18, 86) - Dense historic district, narrow roadways, high structural vulnerability.
-[8] Industrial Zone (78, 52) - Heavy manufacturing, chemical refineries, HAZMAT risks.
-[9] East Shelter (92, 42) - Primary disaster evacuation facility and triage zone.
-[10] West Market (62, 76) - High foot-traffic commercial corridor.
-[11] South Station (46, 94) - Southern cargo depot and logistics staging ground.
+The graph consists of 12 geographical Chennai response zones (not real facilities):
+[0] Thiruvottiyur, [1] Manali, [2] Madhavaram, [3] Tondiarpet,
+[4] Royapuram, [5] Perambur, [6] Anna Nagar, [7] T. Nagar,
+[8] Kodambakkam, [9] Guindy, [10] Adyar, [11] Sholinganallur.
 
-The graph has 16 road arteries with base traversal times:
-0->1 (4 min), 0->2 (3 min), 0->3 (5 min), 1->4 (6 min), 2->4 (4 min), 2->6 (5 min),
-3->7 (4 min), 4->5 (7 min), 4->8 (5 min), 5->9 (6 min), 6->7 (3 min), 6->10 (4 min),
-7->11 (6 min), 8->9 (3 min), 8->10 (5 min), 10->11 (4 min).
-Road blockages dynamically assign an infinite weight to the affected edge, prompting Dijkstra's algorithm to compute real-time detour bypasses.
+The graph has 16 estimated weighted links for algorithm demonstrations, not actual road travel times. Road blockages dynamically assign an infinite weight to an edge, prompting Dijkstra's algorithm to compute a simulation detour.
 
 Max-Heap Priority Scoring Formula:
 Score = 100 * [ 0.40 * (Severity / 4) + 0.25 * (min(Affected, 1000) / 1000) + 0.20 * Risk + 0.15 * (min(WaitTime, 3600) / 3600) ]
@@ -3035,6 +3008,66 @@ Fleet Resource Capabilities:
       }
     }
 
+    // Server-backed documents replace the legacy browser text scraper above.
+    // Uploaded PDFs never enter the client-side keyword vault.
+    let uploadedDocuments = [];
+    let activeDocumentId = null;
+    const selectedDocumentIds = new Set();
+    async function refreshDocumentShelf() {
+      const response = await fetch('/api/documents');
+      const data = await response.json();
+      uploadedDocuments = data.documents || [];
+      const availableIds = new Set(uploadedDocuments.map(doc => doc.id));
+      [...selectedDocumentIds].forEach(id => {
+        if (!availableIds.has(id)) selectedDocumentIds.delete(id);
+      });
+      const list = document.getElementById('ai-sources-list');
+      const count = document.getElementById('vault-doc-count');
+      const chunks = document.getElementById('vault-chunk-count');
+      if (count) count.textContent = uploadedDocuments.length;
+      if (chunks) chunks.textContent = `${uploadedDocuments.reduce((sum, doc) => sum + doc.chunkCount, 0)} CHUNKS`;
+      if (!list) return;
+      list.innerHTML = uploadedDocuments.length ? '' : '<div class="source-meta">No uploaded PDFs in this private browser session.</div>';
+      uploadedDocuments.forEach(doc => {
+        const item = document.createElement('div'); item.className = 'ai-source-item';
+        item.innerHTML = '<input class="source-select" type="checkbox" aria-label="Use this document for the next answer"><div class="source-icon">📕</div><div class="source-details"><div class="source-name"></div><div class="source-meta"></div></div><button type="button" class="btn-delete-source" title="Delete document and embeddings">&times;</button>';
+        item.querySelector('.source-name').textContent = doc.filename;
+        item.querySelector('.source-meta').textContent = `${doc.pages} pages • ${doc.chunkCount} embedded chunks • ${(doc.size / 1024).toFixed(1)} KB`;
+        const select = item.querySelector('.source-select');
+        select.checked = selectedDocumentIds.has(doc.id);
+        select.addEventListener('change', () => {
+          if (select.checked) selectedDocumentIds.add(doc.id);
+          else selectedDocumentIds.delete(doc.id);
+        });
+        item.querySelector('button').addEventListener('click', async () => {
+          await fetch(`/api/documents/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
+          if (activeDocumentId === doc.id) activeDocumentId = null;
+          selectedDocumentIds.delete(doc.id);
+          await refreshDocumentShelf();
+        });
+        list.appendChild(item);
+      });
+    }
+    processUploadedFile = async function (file) {
+      const bar = document.getElementById('ai-active-file-bar');
+      const name = document.getElementById('ai-active-file-name');
+      if (bar && name) { name.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB) — indexing`; bar.style.display = 'flex'; }
+      if (!file.name.toLowerCase().endsWith('.pdf')) { appendBotMessage('⚠️ Only PDF documents are currently supported.'); if (bar) bar.style.display = 'none'; return; }
+      try {
+        const form = new FormData(); form.append('file', file);
+        const response = await fetch('/api/documents/upload', { method: 'POST', body: form });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Upload failed.');
+        activeDocumentId = data.document.id;
+        selectedDocumentIds.add(data.document.id);
+        await refreshDocumentShelf(); audio.chime();
+        appendBotMessage(`**Document indexed:** \`${data.document.filename}\` — ${data.document.pages} pages, ${data.document.chunkCount} embedded chunks. Questions are answered only from retrieved evidence.`);
+      } catch (error) { appendBotMessage(`⚠️ **Document processing failed:** ${error.message}`); }
+      finally { if (bar) bar.style.display = 'none'; }
+    };
+
+    refreshDocumentShelf().catch(() => {});
+
     // --- 4. TACTICAL AI REASONING ENGINE (RAG + DIJKSTRA + HEAP + REST API) -----
     async function executeAIEngine(prompt) {
       if (isProcessing) return;
@@ -3043,9 +3076,6 @@ Fleet Resource Capabilities:
       const thinkingEl = document.getElementById('ai-thinking-indicator');
       if (thinkingEl) thinkingEl.style.display = 'flex';
       audio.ping();
-
-      // Retrieve relevant chunks from Knowledge Vault
-      const retrieved = knowledgeVault.retrieve(prompt, 4);
 
       // Gather live telemetry snapshot
       const activeIncidents = state.emergencies.filter(e => e.status === 0 || e.status === 1);
@@ -3065,16 +3095,20 @@ Fleet Resource Capabilities:
 
       try {
         let aiResponseText = '';
-        let citations = retrieved;
+        let citations = [];
 
-        // Route to Cloud LLM if configured, else use Built-in Neural RAG
-        if (aiConfig.provider === 'gemini' && aiConfig.apiKey) {
-          aiResponseText = await callGeminiAPI(prompt, retrieved, liveTelemetryContext);
-        } else if (aiConfig.provider === 'openai' && aiConfig.apiKey) {
-          aiResponseText = await callOpenAIAPI(prompt, retrieved, liveTelemetryContext);
+        // Document answers must use the server-side, evidence-grounded pipeline.
+        if (uploadedDocuments.length > 0) {
+          const selectedIds = [...selectedDocumentIds];
+          if (!selectedIds.length) throw new Error('Select at least one uploaded PDF using the source checkboxes.');
+          const response = await fetch('/api/rag/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: prompt, documentIds: selectedIds }) });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Document question failed.');
+          aiResponseText = result.answer;
+          citations = result.citations || [];
         } else {
-          // BUILT-IN TACTICAL NEURAL RAG ENGINE (Zero-setup / 100% offline & intelligent)
-          aiResponseText = generateBuiltinIntelligence(prompt, retrieved, liveTelemetryContext);
+          // Preserve non-document simulation and routing assistance without using an API key.
+          aiResponseText = generateBuiltinIntelligence(prompt, [], liveTelemetryContext);
         }
 
         if (thinkingEl) thinkingEl.style.display = 'none';
@@ -3090,7 +3124,7 @@ Fleet Resource Capabilities:
       } catch (err) {
         console.error('[A.E.G.I.S.] Inference Error:', err);
         if (thinkingEl) thinkingEl.style.display = 'none';
-        appendBotMessage(`⚠️ **A.E.G.I.S. Telemetry Error:** ${err.message}\n\nFalling back to local neural heuristics.`);
+        appendBotMessage(`⚠️ **A.E.G.I.S. request failed:** ${err.message}`);
       } finally {
         isProcessing = false;
       }
@@ -3111,19 +3145,15 @@ Fleet Resource Capabilities:
       }
 
       // 2. Live Action: Dijkstra Route Calculation Query
-      const routeRegex = /(?:from|between)\s+(?:node\s+)?(\d+|central hq|airport|tech park|hospital|old town)\s+(?:to|and)\s+(?:node\s+)?(\d+|central hq|airport|tech park|hospital|old town)/i;
+      const routeRegex = /(?:from|between)\s+(?:node\s+)?([a-z. ]+?|\d+)\s+(?:to|and)\s+(?:node\s+)?([a-z. ]+?|\d+)(?:[?.,!]|$)/i;
       const routeMatch = p.match(routeRegex);
       if (p.includes('route') || p.includes('path') || p.includes('dijkstra') || routeMatch) {
         let fromId = 0;
-        let toId = 5; // Default HQ to Airport
+        let toId = 5; // Default Thiruvottiyur-to-Perambur graph query
 
         if (routeMatch) {
           fromId = parseNodeId(routeMatch[1]);
           toId = parseNodeId(routeMatch[2]);
-        } else if (p.includes('hospital')) {
-          toId = 2;
-        } else if (p.includes('tech park')) {
-          toId = 4;
         }
 
         const dijkstraRes = runDijkstraAlgorithm(fromId, toId);
@@ -3145,16 +3175,9 @@ Fleet Resource Capabilities:
         return `### 🛰️ Live Tactical Telemetry Audit\n\n* **Simulation Time:** \`+${tel.simTime}m elapsed\`\n* **Active Alarms:** **${tel.activeIncidentCount}** (${tel.pendingIncidentCount} pending in Max-Heap)\n${topText}\n* **Fleet Readiness:** **${tel.availableFleetUnits}**\n* **Roadway Blockages:** **${tel.blockedRoads}**\n\n*Recommended Operational Heuristic:* Dispatch highest-priority pending unit immediately (<kbd>D</kbd>) to prevent casualty escalation.`;
       }
 
-      // 5. Document RAG Retrieval Synthesis (If matches user-uploaded files or system knowledge)
-      if (retrieved.length > 0 && retrieved[0].score > 0.45) {
-        const primaryDoc = retrieved[0];
-        const bullets = retrieved.map(r => `* **[${r.docName}]:** "${r.text.replace(/\n+/g, ' ').substring(0, 220)}..."`).join('\n\n');
-
-        return `### 📄 Knowledge Vault Intelligence Retrieval\nBased on semantic retrieval across **${knowledgeVault.documents.length} ingested knowledge sources**, here is the relevant operational data:\n\n${bullets}\n\n#### 🎯 Contextual Analysis:\nCross-referencing the retrieved documentation with current city telemetry reveals that operational protocols align with **${tel.activeIncidentCount} active sector alarms**. Further inquiries regarding specific sections or parameters will be indexed with source attribution.`;
-      }
-
-      // 6. General Intelligent Fallback
-      return `### 🧠 A.E.G.I.S. Tactical Analysis\nI have synthesized your inquiry: *"**${prompt}**"* against the live ARES command matrix and ingested Knowledge Vault.\n\n* **City State:** All 12 sectors monitored across 16 graph arteries.\n* **Telemetry Status:** ${tel.activeIncidentCount} incidents active, ${tel.pendingIncidentCount} pending triage in the Max-Heap.\n* **Knowledge Vault:** ${knowledgeVault.documents.length} sources indexed.\n\n*Tip:* You can drag & drop any incident logs or manuals into the **Document Ingestion Vault** on the left to extract immediate answers with citations, or ask to calculate shortest routes between any two city sectors.`;
+      // 5. General simulation-assistant fallback. Uploaded-document questions
+      // always go through the server-side embedding and retrieval pipeline.
+      return `### 🧠 A.E.G.I.S. Tactical Analysis\nI have synthesized your inquiry: *"**${prompt}**"* against the live ARES command matrix.\n\n* **City State:** All 12 zones monitored across 16 estimated graph links.\n* **Telemetry Status:** ${tel.activeIncidentCount} incidents active, ${tel.pendingIncidentCount} pending triage in the Max-Heap.\n\n*Tip:* Select one or more indexed PDFs in the **Document Ingestion Vault** before asking a document question; answers will include retrieved-page citations.`;
     }
 
     // Helper: parse node names or numbers
@@ -3163,90 +3186,9 @@ Fleet Resource Capabilities:
       const str = val.trim().toLowerCase();
       const num = parseInt(str, 10);
       if (!isNaN(num) && num >= 0 && num <= 11) return num;
-      if (str.includes('hq') || str.includes('central')) return 0;
-      if (str.includes('north')) return 1;
-      if (str.includes('hospital')) return 2;
-      if (str.includes('univ')) return 3;
-      if (str.includes('tech')) return 4;
-      if (str.includes('airport')) return 5;
-      if (str.includes('bridge') || str.includes('river')) return 6;
-      if (str.includes('old')) return 7;
-      if (str.includes('industrial')) return 8;
-      if (str.includes('shelter') || str.includes('east')) return 9;
-      if (str.includes('market') || str.includes('west')) return 10;
-      if (str.includes('south')) return 11;
+      const matchingNode = state.nodes.find(node => node.label.toLowerCase() === str || node.label.toLowerCase().includes(str));
+      if (matchingNode) return matchingNode.id;
       return 0;
-    }
-
-    // Cloud LLM Call: Google Gemini API
-    async function callGeminiAPI(userQuery, chunks, tel) {
-      const systemInstruction = `You are A.E.G.I.S. (Autonomous Emergency Geospatial Intelligence Synthesizer), a tactical AI integrated into the ARES emergency response system.
-Live City Telemetry:
-- Active Incidents: ${tel.activeIncidentCount} (${tel.pendingIncidentCount} pending in Max-Heap)
-- Top Priority Crisis: ${tel.topEmergency}
-- Available Fleet: ${tel.availableFleetUnits}
-- Blocked Roads: ${tel.blockedRoads}
-Retrieved Documentation Chunks:
-${chunks.map((c, i) => `[Source ${i+1}: ${c.docName} (Chunk #${c.chunkIndex})]\n${c.text}`).join('\n\n')}
-Respond with tactical precision, cybernetic authority, clear markdown, bullet points, and exact citations when referencing documents.`;
-
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${aiConfig.model || 'gemini-1.5-flash'}:generateContent?key=${aiConfig.apiKey}`;
-      const payload = {
-        contents: [
-          { role: 'user', parts: [{ text: `${systemInstruction}\n\nCommander Inquiry: ${userQuery}` }] }
-        ],
-        generationConfig: {
-          temperature: 0.35,
-          maxOutputTokens: 1024
-        }
-      };
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `Gemini API returned status ${res.status}`);
-      }
-
-      const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated by Gemini model.';
-    }
-
-    // Cloud LLM Call: OpenAI API
-    async function callOpenAIAPI(userQuery, chunks, tel) {
-      const endpoint = 'https://api.openai.com/v1/chat/completions';
-      const messages = [
-        {
-          role: 'system',
-          content: `You are A.E.G.I.S., the tactical AI core of ARES. Live Telemetry: ${JSON.stringify(tel)}. Retrieved Knowledge:\n${chunks.map(c => `[${c.docName}]: ${c.text}`).join('\n')}`
-        },
-        { role: 'user', content: userQuery }
-      ];
-
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${aiConfig.apiKey}`
-        },
-        body: JSON.stringify({
-          model: aiConfig.model || 'gpt-4o-mini',
-          messages: messages,
-          temperature: 0.3
-        })
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `OpenAI API returned status ${res.status}`);
-      }
-
-      const data = await res.json();
-      return data.choices?.[0]?.message?.content || 'No response from OpenAI.';
     }
 
     // --- 5. STREAMING TYPEWRITER UI RENDERER ---------------------------------
@@ -3311,12 +3253,14 @@ Respond with tactical precision, cybernetic authority, clear markdown, bullet po
             citations.forEach((c, idx) => {
               const badge = document.createElement('span');
               badge.className = 'ai-citation-badge';
-              badge.innerHTML = `<span>📑</span> [${c.docName.substring(0, 18)} • #${c.chunkIndex}]`;
-              badge.title = 'Click to inspect extracted text snippet';
+              const sourceName = c.filename || c.docName || 'Document';
+              const sourcePage = c.page ? `p. ${c.page}` : `chunk #${c.chunkIndex}`;
+              badge.innerHTML = `<span>📑</span> [${escapeHTML(sourceName.substring(0, 18))} • ${sourcePage}]`;
+              badge.title = 'Click to inspect retrieved source text';
 
               const preview = document.createElement('div');
               preview.className = 'ai-citation-preview';
-              preview.innerHTML = `<strong>Source: ${c.docName} (Chunk #${c.chunkIndex})</strong><br><span style="color:#00f0ff;">"${c.text}"</span>`;
+              preview.innerHTML = `<strong>Source: ${escapeHTML(sourceName)} (${sourcePage})</strong><br><span style="color:#00f0ff;">"${escapeHTML(c.snippet || c.text || '')}"</span>`;
 
               badge.addEventListener('click', () => {
                 const isShown = preview.style.display === 'block';
@@ -3736,7 +3680,13 @@ Respond with tactical precision, cybernetic authority, clear markdown, bullet po
     // Dismiss active file banner
     const clearActiveFileBtn = document.getElementById('btn-clear-active-file');
     if (clearActiveFileBtn) {
-      clearActiveFileBtn.addEventListener('click', () => {
+      clearActiveFileBtn.addEventListener('click', async () => {
+        if (activeDocumentId) {
+          await fetch(`/api/documents/${encodeURIComponent(activeDocumentId)}`, { method: 'DELETE' });
+          selectedDocumentIds.delete(activeDocumentId);
+          activeDocumentId = null;
+          await refreshDocumentShelf();
+        }
         const b = document.getElementById('ai-active-file-bar');
         if (b) b.style.display = 'none';
       });

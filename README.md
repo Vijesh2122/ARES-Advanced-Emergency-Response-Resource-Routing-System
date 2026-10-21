@@ -1,6 +1,6 @@
 # ARES — Advanced Emergency Response & Resource Routing System
 
-ARES is an enterprise-grade tactical command simulation that pairs a high-performance **C11 data-structures engine** with an **ultra-high-tech cybernetic web operations center (v3.5 PRO)**. Operators register incidents and response units, inspect real-time telemetry, calculate shortest routes with disaster road-block re-routing, and auto-dispatch units using prioritized Max-Heap triage and Dijkstra's algorithm.
+ARES is an academic emergency-response simulation that pairs a high-performance **C11 data-structures engine** with a cybernetic web operations center. Operators register simulated incidents and response units, inspect telemetry, calculate shortest routes with disaster road-block re-routing, and auto-dispatch units using prioritized Max-Heap triage and Dijkstra's algorithm.
 
 ---
 
@@ -65,7 +65,44 @@ Then open your browser to:
 http://localhost:8080
 ```
 
-*(Or double-click `web\index.html` for 100% offline standalone usage).*
+The map works offline with its Chennai fallback data. PDF RAG requires the server.
+
+### 1a. Enable PDF RAG
+
+RAG uses `pypdf`, SQLite (included with Python), and OpenAI's real embedding and chat APIs. No API key is ever sent to or stored in the browser.
+
+```bat
+python -m pip install -r requirements.txt
+set OPENAI_API_KEY=your_key_here
+python server.py
+```
+
+Use the paperclip in **AI Intel Hub** to upload a digital-text PDF (15 MB maximum). The server verifies the extension, MIME type and `%PDF-` signature, detects encrypted/scanned/empty PDFs, extracts text page by page, chunks it with overlap, calls `text-embedding-3-small`, and stores vectors and metadata in `data/ares_rag.sqlite`. Documents are isolated by an HttpOnly browser-session cookie. Use the × beside a source to remove its text and embeddings; original PDFs are never persisted.
+
+Set optional model overrides with the server environment variables shown in `.env.example`. Do not commit a `.env` file.
+
+## Chennai response zones
+
+The 12 nodes are geographical response zones, not hospitals, stations, shelters, or operational emergency facilities. Latitude/longitude values are locality centroids verified against OpenStreetMap/GeoNames records. Canvas `x/y` values are only a projection for the existing custom renderer.
+
+| ID | Zone | Latitude | Longitude |
+|---:|---|---:|---:|
+| 0 | Thiruvottiyur | 13.15823 | 80.30181 |
+| 1 | Manali | 13.18106 | 80.26942 |
+| 2 | Madhavaram | 13.14210 | 80.23240 |
+| 3 | Tondiarpet | 13.12777 | 80.28959 |
+| 4 | Royapuram | 13.11462 | 80.29403 |
+| 5 | Perambur | 13.11212 | 80.24502 |
+| 6 | Anna Nagar | 13.08825 | 80.20734 |
+| 7 | T. Nagar | 13.04180 | 80.23410 |
+| 8 | Kodambakkam | 13.04921 | 80.22428 |
+| 9 | Guindy | 13.00871 | 80.22037 |
+| 10 | Adyar | 13.00645 | 80.25778 |
+| 11 | Sholinganallur | 12.89354 | 80.23206 |
+
+The 16 links are estimated graph weights for illustrating Dijkstra's algorithm. They are not verified road distances, road-network routes, or travel times. Do not use ARES for live dispatch decisions.
+
+For manually sourced official reference PDFs, use the Greater Chennai Corporation [City Disaster Management Perspective Plan](https://portal.chennaicorporation.gov.in/gcc/cdmp/), [Chennai Climate Action Plan](https://www.tngcc.tn.gov.in/wp-content/uploads/2025/10/Chennai_Climate_Action_Plan_ENG_5d827c7dec_compressed.pdf), or [Chennai District Disaster Management](https://chennai.nic.in/disaster-management/) pages. ARES does not automatically download or scrape them; download and review a PDF yourself, then upload it.
 
 ### 2. Build & Run C Native Terminal Engine
 

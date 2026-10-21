@@ -25,6 +25,18 @@ typedef struct {
     int  fleet_count[MAX_GRAPH_NODES];
 } NodeTelemetry;
 
+/* Locality centroids used by the browser map.  These are geographical
+ * response zones, not emergency facilities.  The terminal renderer still
+ * uses the separate x/y canvas projection owned by the graph module. */
+static const double CHENNAI_LATITUDE[12] = {
+    13.15823, 13.18106, 13.14210, 13.12777, 13.11462, 13.11212,
+    13.08825, 13.04180, 13.04921, 13.00871, 13.00645, 12.89354
+};
+static const double CHENNAI_LONGITUDE[12] = {
+    80.30181, 80.26942, 80.23240, 80.28959, 80.29403, 80.24502,
+    80.20734, 80.23410, 80.22428, 80.22037, 80.25778, 80.23206
+};
+
 static bool collect_emergency_telemetry(const Emergency *e, void *data) {
     NodeTelemetry *telem = (NodeTelemetry *)data;
     if (e->status == STATUS_PENDING || e->status == STATUS_ACTIVE) {
@@ -64,30 +76,19 @@ void map_render_terminal(const AresRoute *highlight_route) {
 
     printf("\n");
     ui_print_header("ARES METRO TOPOLOGY RADAR MAP");
-    printf(COL_GRAY "  Tactical Spatial Grid // 12 Monitored Sectors\n" COL_RESET);
+    printf(COL_GRAY "  Chennai Response-Zone Graph // 12 geographical zones\n" COL_RESET);
     printf("  " COL_GREEN "[00..11]" COL_RESET " Sector ID   "
            COL_RED "[*ALERT*]" COL_RESET " Active Incident   "
            COL_CYAN "[UNIT]" COL_RESET " Response Fleet\n\n");
 
-    /* Visual 2D Grid Art */
     printf("  " COL_BOLD COL_WHITE
-           "                  [01 North Station] --------- (6m) -------- [04 Tech Park] --- (7m) --- [05 Airport]\n"
-           "                         |                                         | \\                       |\n"
-           "                        (4m)                                      (4m)  (5m)                (6m)\n"
-           "                         |                                         |      \\                  |\n"
-           "  [02 City Hospital] -- (3m) -- [00 Central HQ]                    |    [08 Industrial] - (3m) - [09 East Shelter]\n"
-           "        |                              |                           |             |\n"
-           "       (5m)                           (5m)                         |            (5m)\n"
-           "        |                              |                           |             |\n"
-           "  [06 River Bridge]                    |                           |             |\n"
-           "     /     \\                           |                           |             |\n"
-           "   (3m)    (4m)                        |                           |             |\n"
-           "   /         \\                         |                           |             |\n"
-           "[07 Old Town] [10 West Market] --------+---------------------------+-------------+\n"
-           "  \\             /\n"
-           "  (6m)        (4m)\n"
-           "    \\         /\n"
-           " [11 South Station]\n" COL_RESET "\n");
+           "  [01 Manali] -- [00 Thiruvottiyur] -- [03 Tondiarpet] -- [04 Royapuram]\n"
+           "       |                  |                   \\              /\n"
+           "  [02 Madhavaram] -- [05 Perambur] -- [06 Anna Nagar] -- [08 Kodambakkam]\n"
+           "                                              |                  |\n"
+           "                                        [07 T. Nagar]         [09 Guindy]\n"
+           "                                              |                  |\n"
+           "                                           [10 Adyar] -- [11 Sholinganallur]\n" COL_RESET "\n");
 
     /* If a route is highlighted, print its exact sequence */
     if (highlight_route && highlight_route->count > 0) {
@@ -171,7 +172,7 @@ static bool write_json_emergency(const Emergency *e, void *data) {
             "      \"reportedAt\": %lld\n"
             "    }",
             e->id, e->reporter_name, e->description,
-            e->node_id, e->location_label,
+            e->node_id, graph_node_label(e->node_id),
             e->type, type_to_str(e->type),
             e->severity, severity_to_str(e->severity),
             e->affected_count, e->priority_score,
@@ -225,8 +226,9 @@ AresStatus map_export_live_data(const char *json_path, const char *js_path) {
         if (!graph_node_exists(i)) continue;
         int x = 50, y = 50;
         graph_get_node_coord(i, &x, &y);
-        fprintf(f, "    {\"id\": %d, \"label\": \"%s\", \"x\": %d, \"y\": %d}%s\n",
-                i, graph_node_label(i), x, y, (i == 11) ? "" : ",");
+        fprintf(f, "    {\"id\": %d, \"label\": \"%s\", \"latitude\": %.5f, \"longitude\": %.5f, \"x\": %d, \"y\": %d}%s\n",
+                i, graph_node_label(i), CHENNAI_LATITUDE[i], CHENNAI_LONGITUDE[i],
+                x, y, (i == 11) ? "" : ",");
     }
     fprintf(f, "  ],\n");
 

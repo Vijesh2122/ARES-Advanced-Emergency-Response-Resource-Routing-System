@@ -29,7 +29,7 @@ int main(void) {
     ASSERT(graph_node_count() == 12, "Demo city creates 12 graph nodes");
     ASSERT(graph_shortest_path(0, 9, &route) == ARES_OK, "Dijkstra finds a route");
     ASSERT(route.nodes[0] == 0 && route.nodes[route.count - 1] == 9, "Route has correct endpoints");
-    ASSERT(route.total_cost == 15, "Dijkstra selects 15-minute shortest route");
+    ASSERT(route.total_cost == 25, "Dijkstra selects shortest estimated graph route");
     ASSERT(graph_shortest_path(0, 99, &route) == ARES_ERR_NOT_FOUND, "Invalid node is rejected");
 
     EmergencyHeap heap;
@@ -53,15 +53,15 @@ int main(void) {
            "State snapshot loads");
     /* Road blocking & Dynamic Dijkstra re-routing test */
     AresRoute direct_route, reroute;
-    ASSERT(graph_shortest_path(2, 4, &direct_route) == ARES_OK && direct_route.total_cost == 4,
-           "Direct route from Hospital [2] to Tech Park [4] is 4 min");
-    ASSERT(graph_set_road_blocked(2, 4, true) == ARES_OK, "Road 2-4 blocked");
-    ASSERT(graph_is_road_blocked(2, 4) == true, "Road 2-4 is confirmed blocked");
-    ASSERT(graph_shortest_path(2, 4, &reroute) == ARES_OK, "Dijkstra finds alternative detour route");
+    ASSERT(graph_shortest_path(5, 6, &direct_route) == ARES_OK && direct_route.total_cost == 4,
+           "Direct route from Perambur [5] to Anna Nagar [6] is 4 graph units");
+    ASSERT(graph_set_road_blocked(5, 6, true) == ARES_OK, "Road 5-6 blocked");
+    ASSERT(graph_is_road_blocked(5, 6) == true, "Road 5-6 is confirmed blocked");
+    ASSERT(graph_shortest_path(5, 6, &reroute) == ARES_OK, "Dijkstra finds alternative detour route");
     ASSERT(reroute.total_cost > direct_route.total_cost, "Detour route has higher cost than direct road");
-    ASSERT(graph_set_road_blocked(2, 4, false) == ARES_OK, "Road 2-4 unblocked");
-    ASSERT(graph_shortest_path(2, 4, &direct_route) == ARES_OK && direct_route.total_cost == 4,
-           "Route restores to 4 min after road unblocked");
+    ASSERT(graph_set_road_blocked(5, 6, false) == ARES_OK, "Road 5-6 unblocked");
+    ASSERT(graph_shortest_path(5, 6, &direct_route) == ARES_OK && direct_route.total_cost == 4,
+           "Route restores to 4 graph units after road unblocked");
 
     /* Map telemetry export test */
     ASSERT(map_export_live_data("build/test_live.json", "build/test_live.js") == ARES_OK,
