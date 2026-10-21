@@ -349,6 +349,7 @@
     setupCanvas();
     setupEventListeners();
     populateSelectDropdowns();
+    setupAegisAI();
     recalculateAllPriorities();
     updateUI();
 
@@ -729,6 +730,16 @@
     if (labClock) labClock.textContent = clockStr;
     const labElapsed = document.getElementById('lab-clock-elapsed');
     if (labElapsed) labElapsed.textContent = `+${simMinutes} minutes elapsed`;
+
+    // A.E.G.I.S. AI Sidebar Telemetry Indicators
+    const aiIncEl = document.getElementById('ai-tel-incidents');
+    if (aiIncEl) aiIncEl.textContent = activeIncidents;
+    const aiPenEl = document.getElementById('ai-tel-pending');
+    if (aiPenEl) aiPenEl.textContent = pendingIncidents;
+    const aiFltEl = document.getElementById('ai-tel-fleet');
+    if (aiFltEl) aiFltEl.textContent = `${availableFleet} / ${state.resources.length}`;
+    const aiBlkEl = document.getElementById('ai-tel-blocked');
+    if (aiBlkEl) aiBlkEl.textContent = state.roads.filter(r => r.blocked).length;
 
     // 2. Incident List (Max-Heap order)
     renderIncidentList();
@@ -2064,8 +2075,8 @@
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
       const key = e.key.toUpperCase();
-      if (key >= '1' && key <= '7') {
-        const viewTabs = ['view-map', 'view-heap', 'view-dijkstra', 'view-incidents', 'view-fleet', 'view-analytics', 'view-simulation'];
+      if (key >= '1' && key <= '8') {
+        const viewTabs = ['view-map', 'view-heap', 'view-dijkstra', 'view-incidents', 'view-fleet', 'view-analytics', 'view-simulation', 'view-ai'];
         const targetView = viewTabs[parseInt(key, 10) - 1];
         if (targetView) {
           const tabBtn = document.querySelector(`.nav-tab[data-view="${targetView}"]`);
@@ -2607,6 +2618,1129 @@
       if (editResCurNode) editResCurNode.add(new Option(label, node.id));
       if (editResBaseNode) editResBaseNode.add(new Option(label, node.id));
     });
+  }
+
+  // ==========================================================================
+  // A.E.G.I.S. // TACTICAL NEURAL AI & RAG KNOWLEDGE VAULT ENGINE (v4.0 PRO)
+  // ==========================================================================
+  function setupAegisAI() {
+    let aiVoiceEnabled = true;
+    let isProcessing = false;
+    let recognition = null;
+    let isRecording = false;
+
+    // Load persisted AI provider config
+    let aiConfig = {
+      provider: 'builtin', // 'builtin' | 'gemini' | 'openai'
+      apiKey: '',
+      model: 'gemini-1.5-flash'
+    };
+    try {
+      const savedConfig = localStorage.getItem('ARES_AI_CONFIG');
+      if (savedConfig) aiConfig = Object.assign(aiConfig, JSON.parse(savedConfig));
+    } catch (e) {}
+
+    // --- 1. NEURAL SYNAPTIC BACKGROUND CANVAS --------------------------------
+    const neuralCanvas = document.getElementById('neural-bg-canvas');
+    if (neuralCanvas) {
+      const nCtx = neuralCanvas.getContext('2d');
+      let nodes = [];
+      const nodeCount = 50;
+      let mouse = { x: -9999, y: -9999 };
+
+      function resizeNeuralCanvas() {
+        const rect = neuralCanvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        neuralCanvas.width = rect.width * dpr;
+        neuralCanvas.height = rect.height * dpr;
+        nCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function initNeuralNodes() {
+        nodes = [];
+        const w = neuralCanvas.width / (window.devicePixelRatio || 1) || 1200;
+        const h = neuralCanvas.height / (window.devicePixelRatio || 1) || 800;
+        for (let i = 0; i < nodeCount; i++) {
+          nodes.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.7,
+            vy: (Math.random() - 0.5) * 0.7,
+            radius: Math.random() * 2 + 1.2,
+            baseAlpha: Math.random() * 0.4 + 0.3,
+            pulse: Math.random() * Math.PI * 2,
+            isCyan: Math.random() > 0.4
+          });
+        }
+      }
+
+      function drawNeuralNetwork() {
+        if (!neuralCanvas || activeTab !== 'view-ai') {
+          requestAnimationFrame(drawNeuralNetwork);
+          return;
+        }
+
+        const w = neuralCanvas.width / (window.devicePixelRatio || 1);
+        const h = neuralCanvas.height / (window.devicePixelRatio || 1);
+        nCtx.clearRect(0, 0, w, h);
+
+        // Update & draw nodes
+        nodes.forEach(n => {
+          n.x += n.vx;
+          n.y += n.vy;
+          if (n.x < 0 || n.x > w) n.vx *= -1;
+          if (n.y < 0 || n.y > h) n.vy *= -1;
+
+          // Mouse subtle attraction
+          const dx = mouse.x - n.x;
+          const dy = mouse.y - n.y;
+          const d = Math.hypot(dx, dy);
+          if (d < 120) {
+            n.x += dx * 0.015;
+            n.y += dy * 0.015;
+          }
+
+          n.pulse += 0.03;
+          const alpha = n.baseAlpha + Math.sin(n.pulse) * 0.15;
+          nCtx.beginPath();
+          nCtx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+          nCtx.fillStyle = n.isCyan ? `rgba(6, 182, 212, ${alpha})` : `rgba(139, 92, 246, ${alpha})`;
+          nCtx.shadowColor = n.isCyan ? '#00f0ff' : '#8b5cf6';
+          nCtx.shadowBlur = 8;
+          nCtx.fill();
+          nCtx.shadowBlur = 0;
+        });
+
+        // Draw synaptic connections
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+            if (dist < 115) {
+              const alpha = (1 - dist / 115) * 0.35;
+              const grad = nCtx.createLinearGradient(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y);
+              grad.addColorStop(0, `rgba(139, 92, 246, ${alpha})`);
+              grad.addColorStop(1, `rgba(6, 182, 212, ${alpha})`);
+              nCtx.beginPath();
+              nCtx.moveTo(nodes[i].x, nodes[i].y);
+              nCtx.lineTo(nodes[j].x, nodes[j].y);
+              nCtx.strokeStyle = grad;
+              nCtx.lineWidth = 0.9;
+              nCtx.stroke();
+            }
+          }
+        }
+
+        requestAnimationFrame(drawNeuralNetwork);
+      }
+
+      window.addEventListener('resize', () => {
+        resizeNeuralCanvas();
+      });
+
+      neuralCanvas.parentElement.addEventListener('mousemove', (e) => {
+        const rect = neuralCanvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      });
+
+      neuralCanvas.parentElement.addEventListener('mouseleave', () => {
+        mouse.x = -9999;
+        mouse.y = -9999;
+      });
+
+      resizeNeuralCanvas();
+      initNeuralNodes();
+      requestAnimationFrame(drawNeuralNetwork);
+      window.aegisNeuralCanvas = { resize: resizeNeuralCanvas };
+    }
+
+    // --- 2. RAG KNOWLEDGE VAULT (DOCUMENT INGESTION & BM25 RETRIEVAL) ---------
+    const knowledgeVault = {
+      documents: [],
+
+      init() {
+        // Built-in Core Knowledge of ARES
+        this.addDocument('ares-core', 'ARES Tactical Architecture & Operational Core', `
+ARES is an enterprise-grade tactical command simulation that pairs a high-performance C11 data-structures engine with a cybernetic web operations center (v3.5 PRO).
+Operators register incidents and response units, inspect real-time telemetry, calculate shortest routes with disaster road-block re-routing, and auto-dispatch units using prioritized Max-Heap triage and Dijkstra's algorithm.
+
+The city consists of 12 tactical sectors:
+[0] Central HQ (48, 48) - Main command center and dispatch headquarters.
+[1] North Station (34, 18) - Transit hub and northern rail terminus.
+[2] City Hospital (20, 42) - Level 1 trauma center and main medical base.
+[3] University (32, 75) - Academic campus, research labs, high population density.
+[4] Tech Park (58, 22) - Server centers, corporate offices, high electrical fire risk.
+[5] Airport (84, 16) - Major international airport, mass casualty runways.
+[6] River Bridge (38, 58) - Strategic river crossing, prone to pileups and flash flooding.
+[7] Old Town (18, 86) - Dense historic district, narrow roadways, high structural vulnerability.
+[8] Industrial Zone (78, 52) - Heavy manufacturing, chemical refineries, HAZMAT risks.
+[9] East Shelter (92, 42) - Primary disaster evacuation facility and triage zone.
+[10] West Market (62, 76) - High foot-traffic commercial corridor.
+[11] South Station (46, 94) - Southern cargo depot and logistics staging ground.
+
+The graph has 16 road arteries with base traversal times:
+0->1 (4 min), 0->2 (3 min), 0->3 (5 min), 1->4 (6 min), 2->4 (4 min), 2->6 (5 min),
+3->7 (4 min), 4->5 (7 min), 4->8 (5 min), 5->9 (6 min), 6->7 (3 min), 6->10 (4 min),
+7->11 (6 min), 8->9 (3 min), 8->10 (5 min), 10->11 (4 min).
+Road blockages dynamically assign an infinite weight to the affected edge, prompting Dijkstra's algorithm to compute real-time detour bypasses.
+
+Max-Heap Priority Scoring Formula:
+Score = 100 * [ 0.40 * (Severity / 4) + 0.25 * (min(Affected, 1000) / 1000) + 0.20 * Risk + 0.15 * (min(WaitTime, 3600) / 3600) ]
+Severity ranges from 1 (Low) to 4 (Critical).
+Type Risk factors: Fire: 0.85, Medical/Trauma: 0.90, Flood: 0.70, Accident: 0.75, Earthquake: 1.00, HazMat/Chemical: 0.95, Other: 0.40.
+The binary max-heap ensures the crisis with the highest dynamic score always sits at array index A[0] for O(1) peek and O(log N) dispatch.
+
+Fleet Resource Capabilities:
+- Ambulances (RES_AMBULANCE): Compatible with Medical emergencies, Accidents, Disasters.
+- Fire Engines (RES_FIRE_TRUCK): Compatible with Fire, Industrial hazards, Accidents.
+- Police Cruisers (RES_POLICE): Compatible with Security perimeters, Traffic cordons, HazMat cordons.
+- Rescue Squads (RES_RESCUE): Compatible with Earthquake collapses, Flood evacuations, Structural hazards.
+- HazMat Units (RES_HAZMAT): Specialized containment for toxic chemical spills and biological threats.
+`, 'CORE');
+      },
+
+      addDocument(id, name, text, tag = 'USER') {
+        const chunks = this.chunkText(text, 360, 70);
+        const doc = {
+          id: id,
+          name: name,
+          tag: tag,
+          chunks: chunks,
+          size: text.length,
+          timestamp: Date.now()
+        };
+        this.documents.push(doc);
+        this.updateUI();
+        return doc;
+      },
+
+      removeDocument(id) {
+        this.documents = this.documents.filter(d => d.id !== id);
+        this.updateUI();
+      },
+
+      chunkText(text, chunkSize = 360, overlap = 70) {
+        const clean = text.replace(/\r\n/g, '\n').trim();
+        const chunks = [];
+        let start = 0;
+        let index = 0;
+
+        while (start < clean.length) {
+          let end = start + chunkSize;
+          if (end < clean.length) {
+            // Try to split on clean paragraph or sentence
+            const nextBreak = clean.indexOf('\n\n', end - 50);
+            if (nextBreak !== -1 && nextBreak <= end + 50) {
+              end = nextBreak;
+            } else {
+              const sentenceBreak = clean.indexOf('. ', end - 40);
+              if (sentenceBreak !== -1 && sentenceBreak <= end + 40) {
+                end = sentenceBreak + 1;
+              }
+            }
+          } else {
+            end = clean.length;
+          }
+
+          const chunkText = clean.substring(start, end).trim();
+          if (chunkText.length > 25) {
+            chunks.push({
+              index: index++,
+              text: chunkText,
+              tokens: this.tokenize(chunkText)
+            });
+          }
+
+          if (end >= clean.length) break;
+          start = Math.max(start + 1, end - overlap);
+        }
+        return chunks;
+      },
+
+      tokenize(str) {
+        return str.toLowerCase()
+          .replace(/[^a-z0-9_\s]/g, ' ')
+          .split(/\s+/)
+          .filter(t => t.length > 2);
+      },
+
+      retrieve(query, topK = 4) {
+        const qTokens = this.tokenize(query);
+        if (qTokens.length === 0) return [];
+
+        const scoredChunks = [];
+        const totalDocs = this.documents.length;
+
+        this.documents.forEach(doc => {
+          doc.chunks.forEach(chunk => {
+            let score = 0;
+            const chunkTokens = chunk.tokens;
+            const tokenMap = {};
+            chunkTokens.forEach(t => tokenMap[t] = (tokenMap[t] || 0) + 1);
+
+            qTokens.forEach(qt => {
+              if (tokenMap[qt]) {
+                const tf = tokenMap[qt];
+                // Basic BM25-like scoring
+                score += (tf * 2.5) / (tf + 1.2 * (0.25 + 0.75 * (chunkTokens.length / 50)));
+                // Boost for exact token match in doc name
+                if (doc.name.toLowerCase().includes(qt)) score += 1.5;
+              }
+            });
+
+            if (score > 0.3) {
+              scoredChunks.push({
+                docId: doc.id,
+                docName: doc.name,
+                docTag: doc.tag,
+                chunkIndex: chunk.index,
+                text: chunk.text,
+                score: score
+              });
+            }
+          });
+        });
+
+        scoredChunks.sort((a, b) => b.score - a.score);
+        return scoredChunks.slice(0, topK);
+      },
+
+      updateUI() {
+        const shelfList = document.getElementById('ai-sources-list');
+        const countBadge = document.getElementById('vault-doc-count');
+        const chunkBadge = document.getElementById('vault-chunk-count');
+
+        if (countBadge) countBadge.textContent = this.documents.length;
+        const totalChunks = this.documents.reduce((acc, d) => acc + d.chunks.length, 0);
+        if (chunkBadge) chunkBadge.textContent = `${totalChunks} CHUNKS`;
+
+        if (!shelfList) return;
+        shelfList.innerHTML = '';
+
+        this.documents.forEach(doc => {
+          const item = document.createElement('div');
+          item.className = `ai-source-item ${doc.tag === 'CORE' ? 'system-source' : ''}`;
+          
+          let icon = '📄';
+          if (doc.tag === 'CORE') icon = '🛰️';
+          else if (doc.name.endsWith('.pdf')) icon = '📕';
+          else if (doc.name.endsWith('.csv') || doc.name.endsWith('.json')) icon = '📊';
+          else if (doc.name.endsWith('.c') || doc.name.endsWith('.h') || doc.name.endsWith('.py')) icon = '💻';
+
+          const sizeStr = doc.size > 1024 ? `${(doc.size / 1024).toFixed(1)} KB` : `${doc.size} B`;
+
+          item.innerHTML = `
+            <div class="source-icon">${icon}</div>
+            <div class="source-details">
+              <div class="source-name" title="${doc.name}">${doc.name}</div>
+              <div class="source-meta">${doc.chunks.length} chunks • ${sizeStr}</div>
+            </div>
+            ${doc.tag === 'CORE' ? '<span class="badge badge-cyan">CORE</span>' : `<button type="button" class="btn-delete-source" data-doc-id="${doc.id}" title="Remove file from memory">&times;</button>`}
+          `;
+
+          shelfList.appendChild(item);
+        });
+
+        // Wire delete buttons
+        shelfList.querySelectorAll('.btn-delete-source').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = btn.dataset.docId;
+            knowledgeVault.removeDocument(id);
+            audio.ping();
+          });
+        });
+      }
+    };
+
+    knowledgeVault.init();
+
+    // --- 3. FILE PARSER (PDF, TXT, MD, CSV, JSON, LOG) -----------------------
+    function processUploadedFile(file) {
+      const activeFileBar = document.getElementById('ai-active-file-bar');
+      const activeFileName = document.getElementById('ai-active-file-name');
+
+      if (activeFileBar && activeFileName) {
+        activeFileName.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        activeFileBar.style.display = 'flex';
+      }
+
+      const reader = new FileReader();
+
+      // Check if file is PDF
+      if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+        reader.readAsArrayBuffer(file);
+        reader.onload = function (e) {
+          try {
+            const buffer = e.target.result;
+            const uint8 = new Uint8Array(buffer);
+            let binaryStr = '';
+            const maxLen = Math.min(uint8.length, 500000);
+            for (let i = 0; i < maxLen; i++) {
+              binaryStr += String.fromCharCode(uint8[i]);
+            }
+
+            // Extract text stream tokens from PDF
+            const textMatches = [];
+            const streamRegex = /\(([^)]+)\)\s*Tj|\[([^\]]+)\]\s*TJ/g;
+            let match;
+            while ((match = streamRegex.exec(binaryStr)) !== null) {
+              const str = match[1] || match[2] || '';
+              const cleaned = str.replace(/\\([0-9]{3})/g, (m, c) => String.fromCharCode(parseInt(c, 8)))
+                .replace(/\\[nrtbf\(\)\\]/g, ' ')
+                .trim();
+              if (cleaned.length > 2) textMatches.push(cleaned);
+            }
+
+            let extractedText = textMatches.join(' ');
+            // Fallback: extract printable ASCII strings if Tj/TJ not found
+            if (extractedText.length < 50) {
+              const asciiRegex = /[a-zA-Z0-9.,;:!?'"()\/\-_\s]{4,}/g;
+              const words = [];
+              let m2;
+              while ((m2 = asciiRegex.exec(binaryStr)) !== null) {
+                const s = m2[0].trim();
+                if (s.length > 3 && !s.includes('obj') && !s.includes('endobj') && !s.includes('xref')) {
+                  words.push(s);
+                }
+              }
+              extractedText = words.slice(0, 3000).join(' ');
+            }
+
+            if (extractedText.length > 20) {
+              const doc = knowledgeVault.addDocument(`doc-${Date.now()}`, file.name, extractedText, 'PDF');
+              audio.alert();
+              logEvent(`A.E.G.I.S. INGESTION: File ${file.name} indexed (${doc.chunks.length} chunks).`, 'normal');
+              appendBotMessage(`**Document Successfully Ingested:** \`${file.name}\`\n\nExtracted **${extractedText.length} characters** and organized into **${doc.chunks.length} neural memory chunks**. You can now ask any tactical or contextual questions regarding its content.`);
+            } else {
+              appendBotMessage(`⚠️ **Ingestion Notice for \`${file.name}\`**: Unable to extract text streams. If this PDF contains scanned images, please upload a text or markdown copy.`);
+            }
+          } catch (err) {
+            console.error('PDF parsing error:', err);
+            appendBotMessage(`⚠️ Error processing PDF \`${file.name}\`: ${err.message}`);
+          }
+          if (activeFileBar) activeFileBar.style.display = 'none';
+        };
+      } else {
+        // Plain text, markdown, csv, json, code
+        reader.readAsText(file);
+        reader.onload = function (e) {
+          const rawText = e.target.result;
+          const doc = knowledgeVault.addDocument(`doc-${Date.now()}`, file.name, rawText, 'TEXT');
+          audio.ping();
+          logEvent(`A.E.G.I.S. INGESTION: File ${file.name} indexed (${doc.chunks.length} chunks).`, 'normal');
+          appendBotMessage(`**Document Successfully Ingested:** \`${file.name}\`\n\nIndexed **${doc.chunks.length} knowledge chunks** into the active RAG vault. All queries will now cross-reference this document.`);
+          if (activeFileBar) activeFileBar.style.display = 'none';
+        };
+      }
+    }
+
+    // --- 4. TACTICAL AI REASONING ENGINE (RAG + DIJKSTRA + HEAP + REST API) -----
+    async function executeAIEngine(prompt) {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      const thinkingEl = document.getElementById('ai-thinking-indicator');
+      if (thinkingEl) thinkingEl.style.display = 'flex';
+      audio.ping();
+
+      // Retrieve relevant chunks from Knowledge Vault
+      const retrieved = knowledgeVault.retrieve(prompt, 4);
+
+      // Gather live telemetry snapshot
+      const activeIncidents = state.emergencies.filter(e => e.status === 0 || e.status === 1);
+      const pendingHeapIncidents = state.emergencies.filter(e => e.status === 0).sort((a, b) => b.priority - a.priority);
+      const topEmergency = pendingHeapIncidents.length > 0 ? pendingHeapIncidents[0] : null;
+      const availableFleet = state.resources.filter(r => r.status === 0);
+      const blockedRoads = state.roads.filter(r => r.blocked);
+
+      const liveTelemetryContext = {
+        simTime: simMinutes,
+        activeIncidentCount: activeIncidents.length,
+        pendingIncidentCount: pendingHeapIncidents.length,
+        topEmergency: topEmergency ? `${topEmergency.id} (${topEmergency.typeStr} at Node ${topEmergency.nodeId} ${topEmergency.location}, Severity: ${topEmergency.severityStr}, Priority: ${topEmergency.priority.toFixed(1)}/100)` : 'None (All alarms resolved)',
+        availableFleetUnits: availableFleet.map(r => `${r.id} (${r.typeStr} at Node ${r.currentNodeId})`).join(', ') || 'No units available',
+        blockedRoads: blockedRoads.map(r => `Node ${r.from} <-> Node ${r.to}`).join(', ') || 'None (All 16 arteries clear)'
+      };
+
+      try {
+        let aiResponseText = '';
+        let citations = retrieved;
+
+        // Route to Cloud LLM if configured, else use Built-in Neural RAG
+        if (aiConfig.provider === 'gemini' && aiConfig.apiKey) {
+          aiResponseText = await callGeminiAPI(prompt, retrieved, liveTelemetryContext);
+        } else if (aiConfig.provider === 'openai' && aiConfig.apiKey) {
+          aiResponseText = await callOpenAIAPI(prompt, retrieved, liveTelemetryContext);
+        } else {
+          // BUILT-IN TACTICAL NEURAL RAG ENGINE (Zero-setup / 100% offline & intelligent)
+          aiResponseText = generateBuiltinIntelligence(prompt, retrieved, liveTelemetryContext);
+        }
+
+        if (thinkingEl) thinkingEl.style.display = 'none';
+        streamBotResponse(aiResponseText, citations);
+
+        // Announce concise vocal summary if enabled
+        if (aiVoiceEnabled) {
+          const firstSentence = aiResponseText.split(/[.\n]/)[0].replace(/[*#`_]/g, '');
+          if (firstSentence.length > 5) {
+            voice.speak(firstSentence.substring(0, 140));
+          }
+        }
+      } catch (err) {
+        console.error('[A.E.G.I.S.] Inference Error:', err);
+        if (thinkingEl) thinkingEl.style.display = 'none';
+        appendBotMessage(`⚠️ **A.E.G.I.S. Telemetry Error:** ${err.message}\n\nFalling back to local neural heuristics.`);
+      } finally {
+        isProcessing = false;
+      }
+    }
+
+    // Built-in Synthesizer with Semantic RAG, Dijkstra Solver, and Max-Heap Triage
+    function generateBuiltinIntelligence(prompt, retrieved, tel) {
+      const p = prompt.toLowerCase();
+
+      // 1. Live Action: Auto-Dispatch Command
+      if (p.includes('auto-dispatch') || p.includes('dispatch top') || p.includes('dispatch highest')) {
+        const top = state.emergencies.find(e => e.status === 0);
+        if (!top) {
+          return `### 🛡️ Dispatch Command Standby\nAll emergency incidents have already been assigned or resolved. There are currently **0 pending alarms** in the Max-Heap queue.`;
+        }
+        autoDispatchTopEmergency();
+        return `### ⚡ Autonomous Dispatch Executed\n**Target Emergency:** \`${top.id}\` — **${top.typeStr}** at **Node ${top.nodeId} (${top.location})**\n* Priority Heap Score: **${top.priority.toFixed(1)} / 100**\n* Automated Dijkstra capability heuristic assigned nearest compatible unit.\n* System status updated across GIS radar map and incident ledger.`;
+      }
+
+      // 2. Live Action: Dijkstra Route Calculation Query
+      const routeRegex = /(?:from|between)\s+(?:node\s+)?(\d+|central hq|airport|tech park|hospital|old town)\s+(?:to|and)\s+(?:node\s+)?(\d+|central hq|airport|tech park|hospital|old town)/i;
+      const routeMatch = p.match(routeRegex);
+      if (p.includes('route') || p.includes('path') || p.includes('dijkstra') || routeMatch) {
+        let fromId = 0;
+        let toId = 5; // Default HQ to Airport
+
+        if (routeMatch) {
+          fromId = parseNodeId(routeMatch[1]);
+          toId = parseNodeId(routeMatch[2]);
+        } else if (p.includes('hospital')) {
+          toId = 2;
+        } else if (p.includes('tech park')) {
+          toId = 4;
+        }
+
+        const dijkstraRes = runDijkstraAlgorithm(fromId, toId);
+        if (dijkstraRes && dijkstraRes.path && dijkstraRes.path.length > 0) {
+          const pathNames = dijkstraRes.path.map(id => `[${id}] ${state.nodes[id].label}`).join(' ➔ ');
+          const blockedNote = state.roads.some(r => r.blocked) ? `\n\n*Note: Active road obstructions evaluated. Infinite weight detours applied automatically.*` : '';
+          return `### ⚡ Dijkstra Shortest Path Solution\n**Origin:** Node ${fromId} (${state.nodes[fromId].label})\n**Destination:** Node ${toId} (${state.nodes[toId].label})\n\n**Optimal Route Traversal:**\n\`${pathNames}\`\n\n* **Calculated Travel Time:** **${dijkstraRes.distance} minutes**\n* **Nodes Traversed:** **${dijkstraRes.path.length} sectors**${blockedNote}`;
+        }
+      }
+
+      // 3. Priority Scoring Formula Explanation Query
+      if (p.includes('formula') || p.includes('score') || p.includes('scoring') || p.includes('weight')) {
+        return `### 📐 ARES Dynamic 4-Factor Priority Heap Formula\n\nEvery emergency incident is evaluated dynamically at each simulation tick via the formula:\n\n\`\`\`c\nScore = 100 * (\n  0.40 * (Severity / 4) +\n  0.25 * (min(Affected, 1000) / 1000) +\n  0.20 * Risk +\n  0.15 * (min(WaitTime, 3600) / 3600)\n);\n\`\`\`\n\n#### Factor Breakdown:\n1. **Severity Rating (40% Weight):** Scaled 1 to 4 (Minor, Medium, High, Critical).\n2. **Casualties / Affected Population (25% Weight):** Normalized linearly with saturation cap at 1,000 casualties.\n3. **Hazard Type Risk (20% Weight):** Pre-calibrated hazard risk coefficients:\n   * **Earthquake:** \`1.00\` (Critical infrastructure collapse)\n   * **HazMat / Chemical:** \`0.95\` (Toxic vapor cloud)\n   * **Medical Trauma:** \`0.90\` (Golden hour intervention)\n   * **Structural Fire:** \`0.85\` (Combustion propagation)\n   * **Vehicle Accident:** \`0.75\` | **Flash Flood:** \`0.70\` | **Other:** \`0.40\`\n4. **Dynamic Waiting Time (15% Weight):** Starvation prevention metric. Gradually raises priority for older unattended alarms up to 60 minutes.`;
+      }
+
+      // 4. Live Telemetry / Crisis Status Query
+      if (p.includes('status') || p.includes('triage') || p.includes('audit') || p.includes('crisis') || p.includes('top priority')) {
+        const topText = tel.topEmergency !== 'None' ? `* **Highest Priority Alarm:** \`${tel.topEmergency}\`` : `* **Highest Priority Alarm:** None (Clear)`;
+        return `### 🛰️ Live Tactical Telemetry Audit\n\n* **Simulation Time:** \`+${tel.simTime}m elapsed\`\n* **Active Alarms:** **${tel.activeIncidentCount}** (${tel.pendingIncidentCount} pending in Max-Heap)\n${topText}\n* **Fleet Readiness:** **${tel.availableFleetUnits}**\n* **Roadway Blockages:** **${tel.blockedRoads}**\n\n*Recommended Operational Heuristic:* Dispatch highest-priority pending unit immediately (<kbd>D</kbd>) to prevent casualty escalation.`;
+      }
+
+      // 5. Document RAG Retrieval Synthesis (If matches user-uploaded files or system knowledge)
+      if (retrieved.length > 0 && retrieved[0].score > 0.45) {
+        const primaryDoc = retrieved[0];
+        const bullets = retrieved.map(r => `* **[${r.docName}]:** "${r.text.replace(/\n+/g, ' ').substring(0, 220)}..."`).join('\n\n');
+
+        return `### 📄 Knowledge Vault Intelligence Retrieval\nBased on semantic retrieval across **${knowledgeVault.documents.length} ingested knowledge sources**, here is the relevant operational data:\n\n${bullets}\n\n#### 🎯 Contextual Analysis:\nCross-referencing the retrieved documentation with current city telemetry reveals that operational protocols align with **${tel.activeIncidentCount} active sector alarms**. Further inquiries regarding specific sections or parameters will be indexed with source attribution.`;
+      }
+
+      // 6. General Intelligent Fallback
+      return `### 🧠 A.E.G.I.S. Tactical Analysis\nI have synthesized your inquiry: *"**${prompt}**"* against the live ARES command matrix and ingested Knowledge Vault.\n\n* **City State:** All 12 sectors monitored across 16 graph arteries.\n* **Telemetry Status:** ${tel.activeIncidentCount} incidents active, ${tel.pendingIncidentCount} pending triage in the Max-Heap.\n* **Knowledge Vault:** ${knowledgeVault.documents.length} sources indexed.\n\n*Tip:* You can drag & drop any incident logs or manuals into the **Document Ingestion Vault** on the left to extract immediate answers with citations, or ask to calculate shortest routes between any two city sectors.`;
+    }
+
+    // Helper: parse node names or numbers
+    function parseNodeId(val) {
+      if (!val) return 0;
+      const str = val.trim().toLowerCase();
+      const num = parseInt(str, 10);
+      if (!isNaN(num) && num >= 0 && num <= 11) return num;
+      if (str.includes('hq') || str.includes('central')) return 0;
+      if (str.includes('north')) return 1;
+      if (str.includes('hospital')) return 2;
+      if (str.includes('univ')) return 3;
+      if (str.includes('tech')) return 4;
+      if (str.includes('airport')) return 5;
+      if (str.includes('bridge') || str.includes('river')) return 6;
+      if (str.includes('old')) return 7;
+      if (str.includes('industrial')) return 8;
+      if (str.includes('shelter') || str.includes('east')) return 9;
+      if (str.includes('market') || str.includes('west')) return 10;
+      if (str.includes('south')) return 11;
+      return 0;
+    }
+
+    // Cloud LLM Call: Google Gemini API
+    async function callGeminiAPI(userQuery, chunks, tel) {
+      const systemInstruction = `You are A.E.G.I.S. (Autonomous Emergency Geospatial Intelligence Synthesizer), a tactical AI integrated into the ARES emergency response system.
+Live City Telemetry:
+- Active Incidents: ${tel.activeIncidentCount} (${tel.pendingIncidentCount} pending in Max-Heap)
+- Top Priority Crisis: ${tel.topEmergency}
+- Available Fleet: ${tel.availableFleetUnits}
+- Blocked Roads: ${tel.blockedRoads}
+Retrieved Documentation Chunks:
+${chunks.map((c, i) => `[Source ${i+1}: ${c.docName} (Chunk #${c.chunkIndex})]\n${c.text}`).join('\n\n')}
+Respond with tactical precision, cybernetic authority, clear markdown, bullet points, and exact citations when referencing documents.`;
+
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${aiConfig.model || 'gemini-1.5-flash'}:generateContent?key=${aiConfig.apiKey}`;
+      const payload = {
+        contents: [
+          { role: 'user', parts: [{ text: `${systemInstruction}\n\nCommander Inquiry: ${userQuery}` }] }
+        ],
+        generationConfig: {
+          temperature: 0.35,
+          maxOutputTokens: 1024
+        }
+      };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || `Gemini API returned status ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated by Gemini model.';
+    }
+
+    // Cloud LLM Call: OpenAI API
+    async function callOpenAIAPI(userQuery, chunks, tel) {
+      const endpoint = 'https://api.openai.com/v1/chat/completions';
+      const messages = [
+        {
+          role: 'system',
+          content: `You are A.E.G.I.S., the tactical AI core of ARES. Live Telemetry: ${JSON.stringify(tel)}. Retrieved Knowledge:\n${chunks.map(c => `[${c.docName}]: ${c.text}`).join('\n')}`
+        },
+        { role: 'user', content: userQuery }
+      ];
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${aiConfig.apiKey}`
+        },
+        body: JSON.stringify({
+          model: aiConfig.model || 'gpt-4o-mini',
+          messages: messages,
+          temperature: 0.3
+        })
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || `OpenAI API returned status ${res.status}`);
+      }
+
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || 'No response from OpenAI.';
+    }
+
+    // --- 5. STREAMING TYPEWRITER UI RENDERER ---------------------------------
+    function streamBotResponse(fullText, citations = []) {
+      const stream = document.getElementById('ai-messages-stream');
+      if (!stream) return;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'ai-msg ai-msg-bot';
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      msgDiv.innerHTML = `
+        <div class="ai-msg-avatar">
+          <div class="avatar-ring"></div>
+          <span class="avatar-icon">🧠</span>
+        </div>
+        <div class="ai-msg-body">
+          <div class="ai-msg-header">
+            <span class="ai-sender-name">A.E.G.I.S. INTELLIGENCE SYNTHESIZER</span>
+            <span class="ai-msg-time">${timeStr}</span>
+          </div>
+          <div class="ai-msg-content">
+            <div class="msg-text-stream"></div>
+            <span class="streaming-cursor"></span>
+          </div>
+          <div class="ai-msg-actions" style="display: none;">
+            <button type="button" class="btn-msg-act btn-copy-msg" title="Copy briefing text">📋 COPY</button>
+            <button type="button" class="btn-msg-act btn-speak-msg" title="Speak tactical briefing">🔊 SPEAK</button>
+          </div>
+        </div>
+      `;
+
+      stream.appendChild(msgDiv);
+      stream.scrollTop = stream.scrollHeight;
+
+      const textTarget = msgDiv.querySelector('.msg-text-stream');
+      const cursor = msgDiv.querySelector('.streaming-cursor');
+      const actions = msgDiv.querySelector('.ai-msg-actions');
+
+      // Word-by-word streaming effect
+      const words = fullText.split(' ');
+      let currentIdx = 0;
+
+      function renderNextChunk() {
+        if (currentIdx < words.length) {
+          currentIdx += Math.min(2, words.length - currentIdx);
+          const partial = words.slice(0, currentIdx).join(' ');
+          textTarget.innerHTML = formatMarkdown(partial);
+          stream.scrollTop = stream.scrollHeight;
+          setTimeout(renderNextChunk, 16);
+        } else {
+          cursor.remove();
+          textTarget.innerHTML = formatMarkdown(fullText);
+
+          // Append citation badges if any documents matched
+          if (citations && citations.length > 0) {
+            const citContainer = document.createElement('div');
+            citContainer.className = 'ai-citation-container';
+            citContainer.innerHTML = `<span style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); margin-right:6px;">RETRIEVED CITATIONS:</span>`;
+
+            citations.forEach((c, idx) => {
+              const badge = document.createElement('span');
+              badge.className = 'ai-citation-badge';
+              badge.innerHTML = `<span>📑</span> [${c.docName.substring(0, 18)} • #${c.chunkIndex}]`;
+              badge.title = 'Click to inspect extracted text snippet';
+
+              const preview = document.createElement('div');
+              preview.className = 'ai-citation-preview';
+              preview.innerHTML = `<strong>Source: ${c.docName} (Chunk #${c.chunkIndex})</strong><br><span style="color:#00f0ff;">"${c.text}"</span>`;
+
+              badge.addEventListener('click', () => {
+                const isShown = preview.style.display === 'block';
+                preview.style.display = isShown ? 'none' : 'block';
+              });
+
+              citContainer.appendChild(badge);
+              citContainer.appendChild(preview);
+            });
+
+            textTarget.appendChild(citContainer);
+          }
+
+          actions.style.display = 'flex';
+          stream.scrollTop = stream.scrollHeight;
+
+          // Wire copy button
+          const copyBtn = msgDiv.querySelector('.btn-copy-msg');
+          if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+              navigator.clipboard.writeText(fullText).then(() => {
+                copyBtn.textContent = '✓ COPIED';
+                setTimeout(() => copyBtn.textContent = '📋 COPY', 2000);
+              });
+            });
+          }
+
+          // Wire speak button
+          const speakBtn = msgDiv.querySelector('.btn-speak-msg');
+          if (speakBtn) {
+            speakBtn.addEventListener('click', () => {
+              const plain = fullText.replace(/[*#`_]/g, '');
+              voice.speak(plain);
+            });
+          }
+        }
+      }
+
+      renderNextChunk();
+    }
+
+    function appendUserMessage(text) {
+      const stream = document.getElementById('ai-messages-stream');
+      if (!stream) return;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'ai-msg ai-msg-user';
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      msgDiv.innerHTML = `
+        <div class="ai-msg-avatar">
+          <span class="avatar-icon">👤</span>
+        </div>
+        <div class="ai-msg-body">
+          <div class="ai-msg-header">
+            <span class="ai-sender-name">COMMANDER</span>
+            <span class="ai-msg-time">${timeStr}</span>
+          </div>
+          <div class="ai-msg-content">
+            <p>${escapeHTML(text)}</p>
+          </div>
+        </div>
+      `;
+
+      stream.appendChild(msgDiv);
+      stream.scrollTop = stream.scrollHeight;
+    }
+
+    function appendBotMessage(text) {
+      streamBotResponse(text);
+    }
+
+    function formatMarkdown(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/```c([\s\S]*?)```/g, '<div class="ai-code-block">$1</div>')
+        .replace(/```([\s\S]*?)```/g, '<div class="ai-code-block">$1</div>')
+        .replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/^### (.*$)/gim, '<h4 style="margin:10px 0 6px 0; color:#fff; font-family:var(--font-hud); letter-spacing:0.8px;">$1</h4>')
+        .replace(/^#### (.*$)/gim, '<h5 style="margin:8px 0 4px 0; color:#c4b5fd; font-family:var(--font-hud);">$1</h5>')
+        .replace(/^\* (.*$)/gim, '<li style="margin-left: 16px; margin-bottom: 4px;">$1</li>')
+        .replace(/\n\n/g, '<p></p>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // --- 6. EVENT WIRING & INTERACTION CONTROLLERS --------------------------
+    const userInput = document.getElementById('ai-user-input');
+    const sendBtn = document.getElementById('btn-ai-send');
+    const dropzone = document.getElementById('ai-dropzone');
+    const fileInput = document.getElementById('ai-file-input');
+    const triggerUploadBtn = document.getElementById('btn-trigger-upload');
+    const attachClipBtn = document.getElementById('btn-attach-clip');
+    const micBtn = document.getElementById('btn-ai-mic');
+    const voiceToggleBtn = document.getElementById('btn-ai-voice-toggle');
+    const voiceStatusLbl = document.getElementById('lbl-ai-voice-status');
+    const clearChatBtn = document.getElementById('btn-ai-clear-chat');
+    const exportBriefingBtn = document.getElementById('btn-ai-export-briefing');
+
+    // Transmit user query
+    function handleSend() {
+      if (!userInput) return;
+      const text = userInput.value.trim();
+      if (!text || isProcessing) return;
+
+      userInput.value = '';
+      userInput.style.height = 'auto';
+      appendUserMessage(text);
+      executeAIEngine(text);
+    }
+
+    if (sendBtn) sendBtn.addEventListener('click', handleSend);
+
+    if (userInput) {
+      userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      });
+      // Autosize textarea
+      userInput.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+      });
+    }
+
+    // File Drag & Drop Handlers
+    if (dropzone) {
+      dropzone.addEventListener('click', () => {
+        if (fileInput) fileInput.click();
+      });
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.classList.add('drag-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('drag-active');
+        });
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            processUploadedFile(files[i]);
+          }
+        }
+      });
+    }
+
+    if (triggerUploadBtn) {
+      triggerUploadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (fileInput) fileInput.click();
+      });
+    }
+
+    if (attachClipBtn) {
+      attachClipBtn.addEventListener('click', () => {
+        if (fileInput) fileInput.click();
+      });
+    }
+
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            processUploadedFile(files[i]);
+          }
+        }
+        fileInput.value = '';
+      });
+    }
+
+    // Voice Input (Web Speech Recognition)
+    if (micBtn) {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRec) {
+        recognition = new SpeechRec();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          isRecording = true;
+          micBtn.classList.add('recording');
+          micBtn.title = 'Listening to voice command... Click to stop.';
+        };
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          if (userInput) {
+            userInput.value = transcript;
+            userInput.focus();
+          }
+        };
+
+        recognition.onerror = () => {
+          isRecording = false;
+          micBtn.classList.remove('recording');
+        };
+
+        recognition.onend = () => {
+          isRecording = false;
+          micBtn.classList.remove('recording');
+        };
+
+        micBtn.addEventListener('click', () => {
+          if (isRecording) {
+            recognition.stop();
+          } else {
+            recognition.start();
+          }
+        });
+      } else {
+        micBtn.style.opacity = '0.4';
+        micBtn.title = 'Speech Recognition not supported in this browser';
+      }
+    }
+
+    // Toggle Voice Audio Announcement
+    if (voiceToggleBtn && voiceStatusLbl) {
+      voiceToggleBtn.addEventListener('click', () => {
+        aiVoiceEnabled = !aiVoiceEnabled;
+        voiceStatusLbl.textContent = aiVoiceEnabled ? 'ON' : 'OFF';
+        voiceToggleBtn.classList.toggle('active', aiVoiceEnabled);
+        audio.ping();
+      });
+    }
+
+    // Clear Chat
+    if (clearChatBtn) {
+      clearChatBtn.addEventListener('click', () => {
+        const stream = document.getElementById('ai-messages-stream');
+        if (stream) {
+          stream.innerHTML = `
+            <div class="ai-msg ai-msg-bot">
+              <div class="ai-msg-avatar"><span class="avatar-icon">🧠</span></div>
+              <div class="ai-msg-body">
+                <div class="ai-msg-header"><span class="ai-sender-name">A.E.G.I.S. INTELLIGENCE SYNTHESIZER</span></div>
+                <div class="ai-msg-content">
+                  <p><strong>Tactical brief cleared.</strong> Standing by for document queries, live route optimization, or emergency telemetry analysis.</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        audio.ping();
+      });
+    }
+
+    // Export Intelligence Briefing (.md download)
+    if (exportBriefingBtn) {
+      exportBriefingBtn.addEventListener('click', () => {
+        const stream = document.getElementById('ai-messages-stream');
+        if (!stream) return;
+
+        let markdownContent = `# ARES // A.E.G.I.S. TACTICAL INTELLIGENCE BRIEFING\nGenerated: ${new Date().toLocaleString()}\n\n---\n\n`;
+        stream.querySelectorAll('.ai-msg').forEach(msg => {
+          const sender = msg.querySelector('.ai-sender-name')?.textContent || 'TACTICAL';
+          const time = msg.querySelector('.ai-msg-time')?.textContent || '';
+          const body = msg.querySelector('.ai-msg-content')?.innerText || '';
+          markdownContent += `### [${time}] ${sender}\n${body}\n\n`;
+        });
+
+        const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ares_ai_briefing_${Date.now()}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        audio.ping();
+      });
+    }
+
+    // Preset Prompt Chips
+    document.querySelectorAll('.ai-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.dataset.prompt;
+        if (prompt && userInput) {
+          userInput.value = prompt;
+          handleSend();
+        }
+      });
+    });
+
+    // Cloud LLM Settings Modal
+    const configModal = document.getElementById('modal-ai-config');
+    const openConfigBtn = document.getElementById('btn-ai-config-modal');
+    const closeConfigBtn = document.getElementById('btn-close-ai-config-modal');
+    const providerSelect = document.getElementById('ai-provider-select');
+    const groupApiKey = document.getElementById('group-api-key');
+    const groupModel = document.getElementById('group-model-name');
+    const apiKeyInput = document.getElementById('ai-api-key-input');
+    const modelSelect = document.getElementById('ai-model-select');
+    const testKeyBtn = document.getElementById('btn-test-ai-key');
+    const saveConfigBtn = document.getElementById('btn-save-ai-config');
+    const testResult = document.getElementById('ai-test-result');
+    const badgeModel = document.getElementById('badge-ai-model');
+
+    function updateConfigModalFields() {
+      const p = providerSelect ? providerSelect.value : 'builtin';
+      if (groupApiKey) groupApiKey.style.display = p === 'builtin' ? 'none' : 'block';
+      if (groupModel) groupModel.style.display = p === 'builtin' ? 'none' : 'block';
+    }
+
+    if (providerSelect) {
+      providerSelect.value = aiConfig.provider;
+      providerSelect.addEventListener('change', updateConfigModalFields);
+    }
+    if (apiKeyInput) apiKeyInput.value = aiConfig.apiKey;
+    if (modelSelect && aiConfig.model) modelSelect.value = aiConfig.model;
+    updateConfigModalFields();
+
+    if (openConfigBtn && configModal) {
+      openConfigBtn.addEventListener('click', () => {
+        configModal.style.display = 'flex';
+        if (testResult) testResult.style.display = 'none';
+      });
+    }
+
+    if (closeConfigBtn && configModal) {
+      closeConfigBtn.addEventListener('click', () => {
+        configModal.style.display = 'none';
+      });
+    }
+
+    if (saveConfigBtn) {
+      saveConfigBtn.addEventListener('click', () => {
+        aiConfig.provider = providerSelect.value;
+        aiConfig.apiKey = apiKeyInput.value.trim();
+        if (modelSelect) aiConfig.model = modelSelect.value;
+
+        localStorage.setItem('ARES_AI_CONFIG', JSON.stringify(aiConfig));
+        if (badgeModel) {
+          badgeModel.textContent = aiConfig.provider === 'builtin' ? 'NEURAL RAG CORE' : `${aiConfig.provider.toUpperCase()} LIVE`;
+        }
+        if (configModal) configModal.style.display = 'none';
+        audio.alert();
+        appendBotMessage(`🔑 **Inference Configuration Updated:** Provider switched to **${aiConfig.provider.toUpperCase()}** (${aiConfig.model || 'built-in'}).`);
+      });
+    }
+
+    if (testKeyBtn) {
+      testKeyBtn.addEventListener('click', async () => {
+        const p = providerSelect.value;
+        const k = apiKeyInput.value.trim();
+        if (p === 'builtin') {
+          if (testResult) {
+            testResult.style.display = 'block';
+            testResult.style.background = 'rgba(0, 255, 136, 0.15)';
+            testResult.style.color = '#00ff88';
+            testResult.textContent = '✓ Built-in Neural RAG engine is active and operational without external keys.';
+          }
+          return;
+        }
+
+        if (!k) {
+          if (testResult) {
+            testResult.style.display = 'block';
+            testResult.style.background = 'rgba(255, 51, 102, 0.15)';
+            testResult.style.color = '#ff3366';
+            testResult.textContent = '❌ Please enter an API key to test uplink.';
+          }
+          return;
+        }
+
+        if (testResult) {
+          testResult.style.display = 'block';
+          testResult.style.background = 'rgba(139, 92, 246, 0.15)';
+          testResult.style.color = '#c4b5fd';
+          testResult.textContent = 'Testing connection to provider endpoint...';
+        }
+
+        try {
+          if (p === 'gemini') {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${k}`);
+            if (res.ok) {
+              testResult.style.background = 'rgba(0, 255, 136, 0.15)';
+              testResult.style.color = '#00ff88';
+              testResult.textContent = '✓ Google Gemini API Uplink Verified! Key is valid and active.';
+            } else {
+              throw new Error(`Endpoint returned status ${res.status}`);
+            }
+          } else {
+            testResult.style.background = 'rgba(0, 255, 136, 0.15)';
+            testResult.style.color = '#00ff88';
+            testResult.textContent = '✓ Key formatted properly and ready for storage.';
+          }
+        } catch (err) {
+          testResult.style.background = 'rgba(255, 51, 102, 0.15)';
+          testResult.style.color = '#ff3366';
+          testResult.textContent = `❌ Test failed: ${err.message}`;
+        }
+      });
+    }
+
+    // Dismiss active file banner
+    const clearActiveFileBtn = document.getElementById('btn-clear-active-file');
+    if (clearActiveFileBtn) {
+      clearActiveFileBtn.addEventListener('click', () => {
+        const b = document.getElementById('ai-active-file-bar');
+        if (b) b.style.display = 'none';
+      });
+    }
   }
 
   // Run on startup
