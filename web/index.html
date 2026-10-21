@@ -113,6 +113,9 @@
       <button class="nav-tab" data-view="view-simulation" id="tab-nav-simulation">
         <span class="nav-icon">⏱️</span> CRISIS SIMULATOR
       </button>
+      <button class="nav-tab nav-tab-ai" data-view="view-ai" id="tab-nav-ai">
+        <span class="nav-icon">🧠</span> AI INTEL HUB <span class="ai-nav-badge">AEGIS</span>
+      </button>
     </div>
 
     <!-- Quick Shortcuts / Help trigger -->
@@ -700,6 +703,207 @@
       </div>
     </div>
 
+    <!-- ====================================================================
+         VIEW 8: A.E.G.I.S. TACTICAL AI INTELLIGENCE HUB & RAG KNOWLEDGE VAULT
+         ==================================================================== -->
+    <div class="view-panel" id="view-ai">
+      <div class="ai-intel-container">
+        <!-- Interactive Synaptic Neural Canvas Background -->
+        <canvas id="neural-bg-canvas" class="neural-bg-canvas"></canvas>
+
+        <!-- TOP BAR: NEURAL CORE TELEMETRY & CONTROLS -->
+        <div class="ai-header-bar">
+          <div class="ai-core-indicator">
+            <div class="neural-core-orb" id="neural-core-orb" title="A.E.G.I.S. Neural Core Active">
+              <div class="orb-ring ring-1"></div>
+              <div class="orb-ring ring-2"></div>
+              <div class="orb-ring ring-3"></div>
+              <div class="orb-nucleus"></div>
+            </div>
+            <div class="ai-core-info">
+              <div class="ai-core-title">
+                <span>A.E.G.I.S. // TACTICAL NEURAL CORE v4.0</span>
+                <span class="badge badge-ai-mode" id="badge-ai-model">NEURAL RAG CORE</span>
+              </div>
+              <div class="ai-core-status-text" id="ai-core-status-text">
+                <span class="status-pulse-dot"></span> NEURAL INFERENCE ONLINE // KNOWLEDGE VAULT ACTIVE
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-header-actions">
+            <!-- Audio Voice TTS Toggle -->
+            <button class="btn-sm btn-outline-ai" id="btn-ai-voice-toggle" title="Toggle AI Tactical Voice Readout">
+              <span class="icon">🎙️</span> VOICE: <span id="lbl-ai-voice-status">ON</span>
+            </button>
+            <!-- LLM Uplink / API Key Config -->
+            <button class="btn-sm btn-outline-ai" id="btn-ai-config-modal" title="Configure Cloud LLM API Key (Gemini / OpenAI)">
+              <span class="icon">🔑</span> API UPLINK
+            </button>
+            <!-- Clear Chat -->
+            <button class="btn-sm btn-outline-ai" id="btn-ai-clear-chat" title="Clear Tactical Briefing">
+              <span class="icon">🗑️</span> CLEAR
+            </button>
+            <!-- Export Briefing -->
+            <button class="btn-sm btn-outline-ai" id="btn-ai-export-briefing" title="Export Intel Briefing (Markdown)">
+              <span class="icon">💾</span> EXPORT
+            </button>
+          </div>
+        </div>
+
+        <!-- MAIN AI WORKSPACE: SPLIT GRID -->
+        <div class="ai-workspace-grid">
+          
+          <!-- LEFT COLUMN: KNOWLEDGE VAULT & INGESTION TERMINAL -->
+          <aside class="ai-knowledge-sidebar scrollbar-cyber">
+            
+            <!-- File Drag & Drop Dropzone -->
+            <div class="ai-dropzone-card" id="ai-dropzone">
+              <div class="dropzone-glow"></div>
+              <div class="dropzone-icon">📁</div>
+              <div class="dropzone-title">DOCUMENT INGESTION VAULT</div>
+              <div class="dropzone-sub">Drag &amp; drop files or click to ingest into Neural Memory</div>
+              <div class="dropzone-formats">PDF, TXT, MD, CSV, JSON, LOG, CODE</div>
+              <input type="file" id="ai-file-input" multiple accept=".pdf,.txt,.md,.markdown,.json,.csv,.c,.h,.py,.js,.html,.css,.log" style="display:none;">
+              <button type="button" class="btn btn-sm btn-primary-ai" id="btn-trigger-upload">
+                <span class="icon">⬆️</span> INGEST FILES
+              </button>
+            </div>
+
+            <!-- Ingested Files Shelf -->
+            <div class="card ai-card-shelf">
+              <div class="card-title">
+                <span>INDEXED KNOWLEDGE SOURCES (<span id="vault-doc-count">1</span>)</span>
+                <span class="badge badge-meta" id="vault-chunk-count">36 CHUNKS</span>
+              </div>
+              <div class="ai-sources-list scrollbar-cyber" id="ai-sources-list">
+                <!-- System Core Knowledge always present -->
+                <div class="ai-source-item system-source">
+                  <div class="source-icon">🛰️</div>
+                  <div class="source-details">
+                    <div class="source-name">ARES System Core Knowledge</div>
+                    <div class="source-meta">12 Sectors • 16 Roads • Dijkstra • Max-Heap</div>
+                  </div>
+                  <span class="badge badge-cyan">CORE</span>
+                </div>
+                <!-- Dynamic uploaded files populated here -->
+              </div>
+            </div>
+
+            <!-- Real-Time Telemetry Bridge Monitor -->
+            <div class="card ai-card-telemetry">
+              <div class="card-title">
+                <span>LIVE TELEMETRY SYNCED</span>
+                <span class="indicator-dot dot-green"></span>
+              </div>
+              <div class="ai-telemetry-stats">
+                <div class="ai-stat-row">
+                  <span class="stat-lbl">Active Incidents:</span>
+                  <span class="stat-val text-red" id="ai-tel-incidents">0</span>
+                </div>
+                <div class="ai-stat-row">
+                  <span class="stat-lbl">Pending Triage:</span>
+                  <span class="stat-val text-amber" id="ai-tel-pending">0</span>
+                </div>
+                <div class="ai-stat-row">
+                  <span class="stat-lbl">Available Fleet:</span>
+                  <span class="stat-val text-cyan" id="ai-tel-fleet">0 / 0</span>
+                </div>
+                <div class="ai-stat-row">
+                  <span class="stat-lbl">Blocked Roadways:</span>
+                  <span class="stat-val text-magenta" id="ai-tel-blocked">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tactical Query Chips -->
+            <div class="card ai-card-chips">
+              <div class="card-title">TACTICAL PROMPT PRESETS</div>
+              <div class="ai-chips-container">
+                <button type="button" class="ai-chip" data-prompt="Assess current incident triage status and report the highest-priority emergency.">🚨 Top Priority Crisis</button>
+                <button type="button" class="ai-chip" data-prompt="Explain the mathematical 4-factor priority scoring formula used by the Max-Heap.">📐 Priority Formula</button>
+                <button type="button" class="ai-chip" data-prompt="Calculate the fastest route from Central HQ (0) to Airport (5) and list road minutes.">⚡ HQ to Airport Route</button>
+                <button type="button" class="ai-chip" data-prompt="Summarize the key information and operational protocols from all ingested files.">📄 Summarize Ingested Files</button>
+                <button type="button" class="ai-chip" data-prompt="Audit fleet readiness and recommend optimal resource allocation.">🛡️ Fleet Readiness Audit</button>
+                <button type="button" class="ai-chip" data-prompt="Inspect blocked roads and calculate bypass detours.">🚧 Road Obstruction Audit</button>
+              </div>
+            </div>
+
+          </aside>
+
+          <!-- RIGHT/CENTER COLUMN: TACTICAL CHAT INTERFACE -->
+          <section class="ai-chat-interface">
+            
+            <!-- Message Stream Scroll Area -->
+            <div class="ai-messages-stream scrollbar-cyber" id="ai-messages-stream">
+              <!-- Initial Welcome Message -->
+              <div class="ai-msg ai-msg-bot">
+                <div class="ai-msg-avatar">
+                  <div class="avatar-ring"></div>
+                  <span class="avatar-icon">🧠</span>
+                </div>
+                <div class="ai-msg-body">
+                  <div class="ai-msg-header">
+                    <span class="ai-sender-name">A.E.G.I.S. INTELLIGENCE SYNTHESIZER</span>
+                    <span class="ai-msg-time">SYSTEM ONLINE</span>
+                  </div>
+                  <div class="ai-msg-content">
+                    <p><strong>Greetings, Commander.</strong> I am <strong>A.E.G.I.S.</strong> (Autonomous Emergency Geospatial Intelligence Synthesizer), the neural intelligence core integrated into the ARES operations matrix.</p>
+                    <p>I have direct real-time telemetry access to all <strong>12 city sectors, 16 road arteries, Max-Heap priority queue, and fleet units</strong>. Furthermore, you can <strong>upload any documents (PDFs, text files, CSV tables, incident logs)</strong> to my Knowledge Vault, and I will perform semantic retrieval and contextual synthesis to answer your tactical inquiries.</p>
+                    <div class="ai-welcome-features">
+                      <div class="feature-item"><span>📁</span> <strong>Document RAG:</strong> Drag &amp; drop any files into the left vault to query them with citations.</div>
+                      <div class="feature-item"><span>⚡</span> <strong>Live Telemetry:</strong> Ask about real-time routes, road blockages, and priority scores.</div>
+                      <div class="feature-item"><span>🎙️</span> <strong>Tactical Voice:</strong> Audio feedback and computerized vocal announcements.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- In-Flight Neural Thinking Indicator -->
+            <div class="ai-thinking-indicator" id="ai-thinking-indicator" style="display: none;">
+              <div class="thinking-spinner"></div>
+              <div class="thinking-text">
+                <span class="thinking-title" id="thinking-title">A.E.G.I.S. NEURAL RETRIEVAL IN PROGRESS</span>
+                <span class="thinking-sub" id="thinking-sub">Scanning knowledge chunks &amp; evaluating telemetry...</span>
+              </div>
+            </div>
+
+            <!-- Floating Active File Ingestion Banner -->
+            <div class="ai-active-file-bar" id="ai-active-file-bar" style="display: none;">
+              <span class="active-file-icon">📎</span>
+              <span class="active-file-name" id="ai-active-file-name">filename.pdf</span>
+              <span class="active-file-status">READY FOR INGESTION</span>
+              <button type="button" class="btn-clear-active-file" id="btn-clear-active-file">&times;</button>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="ai-input-zone">
+              <div class="ai-input-container">
+                <button type="button" class="btn-input-action" id="btn-attach-clip" title="Attach Document to Knowledge Vault">
+                  <span class="icon">📎</span>
+                </button>
+                <textarea id="ai-user-input" class="ai-textarea scrollbar-cyber" rows="1" placeholder="Ask A.E.G.I.S. anything about ARES, city sectors, routing, or uploaded documents... (Enter to send, Shift+Enter for newline)"></textarea>
+                <button type="button" class="btn-input-action" id="btn-ai-mic" title="Voice Input (Speech-to-Text)">
+                  <span class="icon">🎤</span>
+                </button>
+                <button type="button" class="btn-ai-send" id="btn-ai-send" title="Send Tactical Command">
+                  <span class="send-label">TRANSMIT</span>
+                  <span class="send-icon">➔</span>
+                </button>
+              </div>
+              <div class="ai-input-footer">
+                <span class="footer-hint"><kbd>Enter</kbd> to transmit &bull; <kbd>Shift+Enter</kbd> for newline &bull; <kbd>8</kbd> to switch to AI Intel Hub</span>
+                <span class="footer-privacy">🔒 Client-Side RAG Engine &bull; Ingested documents stay private in your browser session</span>
+              </div>
+            </div>
+
+          </section>
+
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- ======================================================================
@@ -952,6 +1156,7 @@
           <div class="sc-item"><kbd>5</kbd> ➔ Fleet Matrix</div>
           <div class="sc-item"><kbd>6</kbd> ➔ Crisis Analytics</div>
           <div class="sc-item"><kbd>7</kbd> ➔ Crisis Simulator</div>
+          <div class="sc-item"><kbd>8</kbd> ➔ AI Intel Hub &amp; RAG Vault</div>
           <div class="sc-item"><kbd>D</kbd> ➔ Auto-Dispatch Top Crisis</div>
           <div class="sc-item"><kbd>R</kbd> ➔ Calculate Shortest Route</div>
           <div class="sc-item"><kbd>Space</kbd> ➔ Start/Pause Sim Clock</div>
@@ -964,6 +1169,54 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" id="btn-dismiss-shortcuts">DISMISS</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: A.E.G.I.S. CLOUD LLM API UPLINK SETTINGS
+       ====================================================================== -->
+  <div class="modal-backdrop" id="modal-ai-config" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title"><span class="icon">🔑</span> A.E.G.I.S. // CLOUD LLM API UPLINK</div>
+        <button class="modal-close" id="btn-close-ai-config-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5;">
+          A.E.G.I.S. operates by default with a zero-setup, 100% offline <strong>Built-in Client-Side Neural RAG Engine</strong>. You can optionally link your own Google Gemini or OpenAI API key for cutting-edge live LLM inference:
+        </p>
+
+        <div class="form-group">
+          <label for="ai-provider-select">Inference Engine</label>
+          <select id="ai-provider-select" class="select-cyber">
+            <option value="builtin" selected>Built-in Neural RAG Core (Free, Fast, 100% Private &amp; Offline)</option>
+            <option value="gemini">Google Gemini API (Gemini 2.5 / 1.5 Flash)</option>
+            <option value="openai">OpenAI API (GPT-4o / GPT-4o-mini)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="group-api-key" style="display: none;">
+          <label for="ai-api-key-input">API Key</label>
+          <input type="password" id="ai-api-key-input" class="input-cyber" placeholder="Enter AIzaSy... (Gemini) or sk-... (OpenAI)">
+          <small style="color: var(--text-muted); display: block; margin-top: 4px;">Keys are stored strictly in your browser's LocalStorage and sent only directly to the model endpoint.</small>
+        </div>
+
+        <div class="form-group" id="group-model-name" style="display: none;">
+          <label for="ai-model-select">Target Model</label>
+          <select id="ai-model-select" class="select-cyber">
+            <option value="gemini-1.5-flash">gemini-1.5-flash (Ultra Fast &amp; High Quality)</option>
+            <option value="gemini-2.0-flash">gemini-2.0-flash (Latest Frontier Model)</option>
+            <option value="gpt-4o-mini">gpt-4o-mini (OpenAI Fast)</option>
+            <option value="gpt-4o">gpt-4o (OpenAI Flagship)</option>
+          </select>
+        </div>
+
+        <div id="ai-test-result" style="display: none; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; font-family: var(--font-mono);"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="btn-test-ai-key">TEST UPLINK</button>
+        <button type="button" class="btn btn-primary" id="btn-save-ai-config">SAVE CONFIGURATION</button>
       </div>
     </div>
   </div>
