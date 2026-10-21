@@ -1,37 +1,177 @@
 {
-  "timestamp": 1792155858,
+  "timestamp": 1792581619,
   "simMinutes": 0,
   "nodes": [
-    {"id": 0, "label": "Central HQ", "x": 48, "y": 48},
-    {"id": 1, "label": "North Station", "x": 34, "y": 18},
-    {"id": 2, "label": "City Hospital", "x": 20, "y": 42},
-    {"id": 3, "label": "University", "x": 32, "y": 75},
-    {"id": 4, "label": "Tech Park", "x": 58, "y": 22},
-    {"id": 5, "label": "Airport", "x": 84, "y": 16},
-    {"id": 6, "label": "River Bridge", "x": 38, "y": 58},
-    {"id": 7, "label": "Old Town", "x": 18, "y": 86},
-    {"id": 8, "label": "Industrial Zone", "x": 78, "y": 52},
-    {"id": 9, "label": "East Shelter", "x": 92, "y": 42},
-    {"id": 10, "label": "West Market", "x": 62, "y": 76},
-    {"id": 11, "label": "South Station", "x": 46, "y": 94}
+    {
+      "id": 0,
+      "label": "Central HQ",
+      "x": 48,
+      "y": 48
+    },
+    {
+      "id": 1,
+      "label": "North Station",
+      "x": 34,
+      "y": 18
+    },
+    {
+      "id": 2,
+      "label": "City Hospital",
+      "x": 20,
+      "y": 42
+    },
+    {
+      "id": 3,
+      "label": "University",
+      "x": 32,
+      "y": 75
+    },
+    {
+      "id": 4,
+      "label": "Tech Park",
+      "x": 58,
+      "y": 22
+    },
+    {
+      "id": 5,
+      "label": "Airport",
+      "x": 84,
+      "y": 16
+    },
+    {
+      "id": 6,
+      "label": "River Bridge",
+      "x": 38,
+      "y": 58
+    },
+    {
+      "id": 7,
+      "label": "Old Town",
+      "x": 18,
+      "y": 86
+    },
+    {
+      "id": 8,
+      "label": "Industrial Zone",
+      "x": 78,
+      "y": 52
+    },
+    {
+      "id": 9,
+      "label": "East Shelter",
+      "x": 92,
+      "y": 42
+    },
+    {
+      "id": 10,
+      "label": "West Market",
+      "x": 62,
+      "y": 76
+    },
+    {
+      "id": 11,
+      "label": "South Station",
+      "x": 46,
+      "y": 94
+    }
   ],
   "roads": [
-    {"from": 0, "to": 1, "minutes": 4, "blocked": false},
-    {"from": 0, "to": 2, "minutes": 3, "blocked": false},
-    {"from": 0, "to": 3, "minutes": 5, "blocked": false},
-    {"from": 1, "to": 4, "minutes": 6, "blocked": false},
-    {"from": 2, "to": 4, "minutes": 4, "blocked": false},
-    {"from": 2, "to": 6, "minutes": 5, "blocked": false},
-    {"from": 3, "to": 7, "minutes": 4, "blocked": false},
-    {"from": 4, "to": 5, "minutes": 7, "blocked": false},
-    {"from": 4, "to": 8, "minutes": 5, "blocked": false},
-    {"from": 5, "to": 9, "minutes": 6, "blocked": false},
-    {"from": 6, "to": 7, "minutes": 3, "blocked": false},
-    {"from": 6, "to": 10, "minutes": 4, "blocked": false},
-    {"from": 7, "to": 11, "minutes": 6, "blocked": false},
-    {"from": 8, "to": 9, "minutes": 3, "blocked": false},
-    {"from": 8, "to": 10, "minutes": 5, "blocked": false},
-    {"from": 10, "to": 11, "minutes": 4, "blocked": false}
+    {
+      "from": 0,
+      "to": 1,
+      "minutes": 4,
+      "blocked": false
+    },
+    {
+      "from": 0,
+      "to": 2,
+      "minutes": 3,
+      "blocked": false
+    },
+    {
+      "from": 0,
+      "to": 3,
+      "minutes": 5,
+      "blocked": false
+    },
+    {
+      "from": 1,
+      "to": 4,
+      "minutes": 6,
+      "blocked": false
+    },
+    {
+      "from": 2,
+      "to": 4,
+      "minutes": 4,
+      "blocked": false
+    },
+    {
+      "from": 2,
+      "to": 6,
+      "minutes": 5,
+      "blocked": false
+    },
+    {
+      "from": 3,
+      "to": 7,
+      "minutes": 4,
+      "blocked": false
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "minutes": 7,
+      "blocked": false
+    },
+    {
+      "from": 4,
+      "to": 8,
+      "minutes": 5,
+      "blocked": false
+    },
+    {
+      "from": 5,
+      "to": 9,
+      "minutes": 6,
+      "blocked": false
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "minutes": 3,
+      "blocked": false
+    },
+    {
+      "from": 6,
+      "to": 10,
+      "minutes": 4,
+      "blocked": false
+    },
+    {
+      "from": 7,
+      "to": 11,
+      "minutes": 6,
+      "blocked": false
+    },
+    {
+      "from": 8,
+      "to": 9,
+      "minutes": 3,
+      "blocked": false
+    },
+    {
+      "from": 8,
+      "to": 10,
+      "minutes": 5,
+      "blocked": false
+    },
+    {
+      "from": 10,
+      "to": 11,
+      "minutes": 4,
+      "blocked": false
+    }
   ],
   "emergencies": [
     {
@@ -45,7 +185,7 @@
       "severity": 3,
       "severityStr": "HIGH",
       "affected": 85,
-      "priority": 49.13,
+      "priority": 64.12500000000001,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -62,7 +202,7 @@
       "severity": 4,
       "severityStr": "CRITICAL",
       "affected": 14,
-      "priority": 59.60,
+      "priority": 73.35000000000001,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -79,7 +219,7 @@
       "severity": 3,
       "severityStr": "HIGH",
       "affected": 32,
-      "priority": 52.30,
+      "priority": 64.8,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -88,7 +228,7 @@
     {
       "id": "INC-A04",
       "reporter": "Patrol Unit 4",
-      "description": "Old building masonry façade collapse over pedestrian lane",
+      "description": "Old building masonry fa\u00e7ade collapse over pedestrian lane",
       "nodeId": 7,
       "location": "Old Town",
       "type": 3,
@@ -96,7 +236,7 @@
       "severity": 2,
       "severityStr": "MEDIUM",
       "affected": 18,
-      "priority": 39.20,
+      "priority": 50.45,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -113,7 +253,7 @@
       "severity": 4,
       "severityStr": "CRITICAL",
       "affected": 2,
-      "priority": 63.05,
+      "priority": 73.05,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
@@ -130,7 +270,7 @@
       "severity": 1,
       "severityStr": "LOW",
       "affected": 40,
-      "priority": 31.25,
+      "priority": 40,
       "status": 0,
       "statusStr": "Pending",
       "assignedResource": "",
