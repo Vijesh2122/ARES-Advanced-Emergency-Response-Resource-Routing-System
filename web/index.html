@@ -114,7 +114,7 @@
         <span class="nav-icon">⏱️</span> CRISIS SIMULATOR
       </button>
       <button class="nav-tab nav-tab-ai" data-view="view-ai" id="tab-nav-ai">
-        <span class="nav-icon">🧠</span> AI INTEL HUB <span class="ai-nav-badge">AEGIS</span>
+        <span class="nav-icon">🧠</span> DOCUMENT ASSISTANT
       </button>
     </div>
 
@@ -708,8 +708,8 @@
          ==================================================================== -->
     <div class="view-panel" id="view-ai">
       <div class="ai-intel-container">
-        <!-- Interactive Synaptic Neural Canvas Background -->
-        <canvas id="neural-bg-canvas" class="neural-bg-canvas"></canvas>
+        <!-- Kept as an optional canvas target for the existing script; hidden by the simplified design. -->
+        <canvas id="neural-bg-canvas" class="neural-bg-canvas" aria-hidden="true"></canvas>
 
         <!-- TOP BAR: NEURAL CORE TELEMETRY & CONTROLS -->
         <div class="ai-header-bar">
@@ -722,11 +722,11 @@
             </div>
             <div class="ai-core-info">
               <div class="ai-core-title">
-                <span>A.E.G.I.S. // TACTICAL NEURAL CORE v4.0</span>
-                <span class="badge badge-ai-mode" id="badge-ai-model">SERVER RAG</span>
+                <span>ARES Document Assistant</span>
+                <span class="badge badge-ai-mode" id="badge-ai-model">LOCAL RAG</span>
               </div>
               <div class="ai-core-status-text" id="ai-core-status-text">
-                <span class="status-pulse-dot"></span> NEURAL INFERENCE ONLINE // KNOWLEDGE VAULT ACTIVE
+                <span class="status-pulse-dot"></span> Cite-backed PDF search and answers
               </div>
             </div>
           </div>
@@ -761,9 +761,9 @@
             <div class="ai-dropzone-card" id="ai-dropzone">
               <div class="dropzone-glow"></div>
               <div class="dropzone-icon">📁</div>
-              <div class="dropzone-title">DOCUMENT INGESTION VAULT</div>
-              <div class="dropzone-sub">Drag &amp; drop a PDF or click to extract and index it securely</div>
-              <div class="dropzone-formats">PDF • 15 MB maximum • digital text required</div>
+              <div class="dropzone-title">Add a PDF</div>
+              <div class="dropzone-sub">Upload a PDF to search it with page citations.</div>
+              <div class="dropzone-formats">PDF • 100 MB maximum</div>
               <input type="file" id="ai-file-input" multiple accept="application/pdf,.pdf" style="display:none;">
               <button type="button" class="btn btn-sm btn-primary-ai" id="btn-trigger-upload">
                 <span class="icon">⬆️</span> INGEST FILES
@@ -773,7 +773,7 @@
             <!-- Ingested Files Shelf -->
             <div class="card ai-card-shelf">
               <div class="card-title">
-                <span>INDEXED KNOWLEDGE SOURCES (<span id="vault-doc-count">0</span>)</span>
+                <span>Sources (<span id="vault-doc-count">0</span>)</span>
                 <span class="badge badge-meta" id="vault-chunk-count">0 CHUNKS</span>
               </div>
               <div class="ai-sources-list scrollbar-cyber" id="ai-sources-list">
@@ -839,12 +839,12 @@
                     <span class="ai-msg-time">SYSTEM ONLINE</span>
                   </div>
                   <div class="ai-msg-content">
-                    <p><strong>Greetings, Commander.</strong> I am <strong>A.E.G.I.S.</strong> (Autonomous Emergency Geospatial Intelligence Synthesizer), the neural intelligence core integrated into the ARES operations matrix.</p>
-                    <p>I have access to the ARES simulation telemetry for <strong>12 geographical response zones, 16 estimated graph links, the Max-Heap priority queue, and fleet units</strong>. You can also <strong>upload digital-text PDFs</strong> to the Knowledge Vault for server-side semantic retrieval and cited answers.</p>
+                    <p><strong>Welcome to ARES Document Assistant.</strong> Upload a PDF, select it in Sources, then ask a question.</p>
+                    <p>Answers are grounded in retrieved passages and include page citations. If no relevant passage is found, the assistant will say so.</p>
                     <div class="ai-welcome-features">
-                      <div class="feature-item"><span>📁</span> <strong>Document RAG:</strong> Drag &amp; drop a digital-text PDF, select it in the source shelf, then query it with citations.</div>
-                      <div class="feature-item"><span>⚡</span> <strong>Live Telemetry:</strong> Ask about real-time routes, road blockages, and priority scores.</div>
-                      <div class="feature-item"><span>🎙️</span> <strong>Tactical Voice:</strong> Audio feedback and computerized vocal announcements.</div>
+                      <div class="feature-item"><span>1</span> Add and select a PDF.</div>
+                      <div class="feature-item"><span>2</span> Ask a specific question.</div>
+                      <div class="feature-item"><span>3</span> Open a citation to inspect its source passage.</div>
                     </div>
                   </div>
                 </div>
@@ -855,8 +855,8 @@
             <div class="ai-thinking-indicator" id="ai-thinking-indicator" style="display: none;">
               <div class="thinking-spinner"></div>
               <div class="thinking-text">
-                <span class="thinking-title" id="thinking-title">A.E.G.I.S. NEURAL RETRIEVAL IN PROGRESS</span>
-                <span class="thinking-sub" id="thinking-sub">Scanning knowledge chunks &amp; evaluating telemetry...</span>
+                <span class="thinking-title" id="thinking-title">Searching selected sources</span>
+                <span class="thinking-sub" id="thinking-sub">Retrieving relevant passages and citations…</span>
               </div>
             </div>
 
@@ -874,12 +874,12 @@
                 <button type="button" class="btn-input-action" id="btn-attach-clip" title="Attach Document to Knowledge Vault">
                   <span class="icon">📎</span>
                 </button>
-                <textarea id="ai-user-input" class="ai-textarea scrollbar-cyber" rows="1" placeholder="Ask A.E.G.I.S. anything about ARES, city sectors, routing, or uploaded documents... (Enter to send, Shift+Enter for newline)"></textarea>
+                <textarea id="ai-user-input" class="ai-textarea scrollbar-cyber" rows="1" placeholder="Ask a question about the selected PDF…"></textarea>
                 <button type="button" class="btn-input-action" id="btn-ai-mic" title="Voice Input (Speech-to-Text)">
                   <span class="icon">🎤</span>
                 </button>
                 <button type="button" class="btn-ai-send" id="btn-ai-send" title="Send Tactical Command">
-                  <span class="send-label">TRANSMIT</span>
+                  <span class="send-label">SEND</span>
                   <span class="send-icon">➔</span>
                 </button>
               </div>
@@ -1165,7 +1165,7 @@
   </div>
 
   <!-- ======================================================================
-       MODAL: A.E.G.I.S. CLOUD LLM API UPLINK SETTINGS
+       MODAL: A.E.G.I.S. LOCAL RAG / OLLAMA SETUP
        ====================================================================== -->
   <div class="modal-backdrop" id="modal-ai-config" style="display: none;">
     <div class="modal-dialog">
@@ -1174,8 +1174,8 @@
         <button class="modal-close" id="btn-close-ai-config-modal">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5;">PDF text is extracted, embedded, retrieved and answered by the local ARES server. The browser never receives an AI API key.</p>
-        <p style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Set <code>OPENAI_API_KEY</code> in the server environment, install <code>requirements.txt</code>, and restart <code>server.py</code>. Documents are isolated to this browser session and can be deleted from the source shelf.</p>
+        <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 16px; line-height: 1.5;">PDF text is extracted, embedded, retrieved and cited by the local ARES server. The browser never receives an API key.</p>
+        <p style="font-size: 13px; color: var(--text-dim); line-height: 1.5;">Generated answers use local Ollama by default and do not need an API key. Install Ollama, pull the configured model, then check <code>/api/llm/health</code>. If Ollama is unavailable, ARES clearly returns cited source passages instead. Documents are isolated to this browser session and can be deleted from Sources.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" id="btn-close-ai-config">CLOSE</button>

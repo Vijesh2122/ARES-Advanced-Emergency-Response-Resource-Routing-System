@@ -67,17 +67,56 @@ http://localhost:8080
 
 The map works offline with its Chennai fallback data. PDF RAG requires the server.
 
-### 1a. Enable PDF RAG
+### 1a. Enable PDF RAG (works without an API key)
 
-RAG uses `pypdf`, SQLite (included with Python), and OpenAI's real embedding and chat APIs. No API key is ever sent to or stored in the browser.
+RAG uses `pypdf`, SQLite (included with Python), and the built-in `ares-local-hash-v1` embedding backend by default. It has no model download, native dependency, or API-credit requirement, so it is a dependable option on Python 3.14/Windows. It performs local normalized word/character similarity plus keyword ranking; it is intentionally lightweight rather than a neural sentence-transformer model. No API key is ever sent to or stored in the browser.
 
 ```bat
 python -m pip install -r requirements.txt
-set OPENAI_API_KEY=your_key_here
 python server.py
 ```
 
-Use the paperclip in **AI Intel Hub** to upload a digital-text PDF (15 MB maximum). The server verifies the extension, MIME type and `%PDF-` signature, detects encrypted/scanned/empty PDFs, extracts text page by page, chunks it with overlap, calls `text-embedding-3-small`, and stores vectors and metadata in `data/ares_rag.sqlite`. Documents are isolated by an HttpOnly browser-session cookie. Use the × beside a source to remove its text and embeddings; original PDFs are never persisted.
+Use the paperclip in **Document Assistant** to upload a PDF (100 MB default; configure `ARES_RAG_MAX_UPLOAD_MB` to a maximum of 250 MB). The server verifies the extension, MIME type and `%PDF-` signature, detects encrypted/scanned/empty PDFs, extracts text page by page, removes repeated page margins, makes sentence-aware overlapping chunks, and stores vectors plus page, heading, embedding model, dimension, and chunk metadata in `data/ares_rag.sqlite`. Documents are isolated by an HttpOnly browser-session cookie. Use the × beside a private source to remove its text and embeddings; original PDFs are never persisted.
+
+To index the supplied authoritative PDF once for every local browser session, run:
+
+```bat
+python ingest_pdf.py "C:\Users\Vijesh\Downloads\ARESPDF1.pdf"
+```
+
+The index is persistent across restarts. Re-running the command with unchanged content is safe and reports `already_indexed`; a changed source becomes a separate managed index. The generated SQLite index is intentionally ignored by Git.
+
+`ARESPDF1.pdf` is 805 pages and 79 MB. It contains predominantly digital text, so it can be indexed without OCR; any image-only pages are skipped unless optional OCR is enabled. After installing Tesseract and adding it to `PATH`, use OCR for those pages:
+
+```bat
+set ARES_RAG_OCR_ENABLED=true
+set ARES_RAG_OCR_MAX_PAGES=900
+python ingest_pdf.py "C:\Users\Vijesh\Downloads\ARESPDF1.pdf"
+```
+
+For each PDF query, ARES embeds a normalized (and, when needed, follow-up-expanded) query, uses hybrid similarity/keyword ranking, rejects chunks under `ARES_RAG_RELEVANCE_THRESHOLD`, and returns only retrieved evidence. The UI shows the cited filename and page(s); when evidence does not meet the threshold, it returns an explicit no-information message. By default, grounded answers are generated locally through Ollama using only a capped set of retrieved passages. No cloud API key is required. Set `ARES_LLM_ENABLED=false` to keep source-only answers, or explicitly set `ARES_LLM_PROVIDER=openai` and `OPENAI_API_KEY` to retain the optional OpenAI generator. Set `ARES_EMBEDDING_BACKEND=openai` only when intentionally rebuilding a separate OpenAI-embedded index. A model or vector-dimension mismatch is rejected with a rebuild instruction, not searched incorrectly.
+
+### Local Ollama answers
+
+Install Ollama, pull the configured model, then start ARES. ARES never downloads models automatically and sends PDF excerpts only to the local `127.0.0.1` Ollama daemon.
+
+```powershell
+ollama --version
+ollama pull llama3.2:3b
+ollama list
+ollama serve
+python server.py
+```
+
+The defaults are `ARES_LLM_PROVIDER=ollama`, `ARES_LLM_ENABLED=true`, `OLLAMA_BASE_URL=http://127.0.0.1:11434`, `OLLAMA_MODEL=llama3.2:3b`, and `OLLAMA_TIMEOUT_SECONDS=120`. Visit `http://localhost:8080/api/llm/health` to check reachability and whether the configured model is installed. If the model is unavailable, run `ollama pull <the configured OLLAMA_MODEL>`; if the daemon is unavailable, start it with `ollama serve`.
+
+Run the Python RAG tests (they mock provider calls and do not need an API key):
+
+```bat
+python -m unittest tests.test_rag -v
+```
+
+Troubleshooting: install `requirements.txt` if upload reports missing PDF support. For a scanned PDF, install the free system [Tesseract OCR](https://github.com/tesseract-ocr/tesseract), ensure its executable is on `PATH`, then set `ARES_RAG_OCR_ENABLED=true`; `pdf2image` also needs Poppler on `PATH`. OCR is invoked only for pages with no extracted text and is capped by `ARES_RAG_OCR_MAX_PAGES`. Do not switch `ARES_EMBEDDING_BACKEND` for an existing index: delete/rebuild it with the intended backend. Set `OPENAI_API_KEY` only for optional answer generation or the optional OpenAI embedding backend.
 
 Set optional model overrides with the server environment variables shown in `.env.example`. Do not commit a `.env` file.
 

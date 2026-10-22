@@ -24,7 +24,18 @@ install_manifest.txt
 data/*.bin
 data/*.tmp
 data/ares_rag.sqlite
+data/ares_rag.sqlite-*
 .env
+.env.*
+!.env.example
+__pycache__/
+tests/__pycache__/
+.venv/
+venv/
+env/
+data/ocr_cache/
+data/models/
+ARESPDF1.pdf
 
 # OS
 .DS_Store

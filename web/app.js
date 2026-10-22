@@ -2626,6 +2626,25 @@
       if (savedConfig) aiConfig = Object.assign(aiConfig, JSON.parse(savedConfig));
     } catch (e) {}
 
+    // The server owns provider configuration; the browser only displays its
+    // non-sensitive health state and never sends an Ollama URL or API key.
+    async function refreshLocalLlmStatus() {
+      const badge = document.getElementById('badge-ai-model');
+      const status = document.getElementById('ai-core-status-text');
+      try {
+        const response = await fetch('/api/llm/health');
+        const health = await response.json();
+        if (!response.ok) throw new Error('status unavailable');
+        const provider = String(health.provider || 'local').toUpperCase();
+        if (badge) badge.textContent = health.modelAvailable ? `${provider} READY` : `${provider} SOURCE-ONLY`;
+        if (status) status.innerHTML = `<span class="status-pulse-dot"></span> ${health.message || 'Cite-backed PDF search and answers'}`;
+      } catch (_) {
+        if (badge) badge.textContent = 'LOCAL RAG';
+        if (status) status.innerHTML = '<span class="status-pulse-dot"></span> Cite-backed PDF search; server status unavailable';
+      }
+    }
+    refreshLocalLlmStatus();
+
     // --- 1. NEURAL SYNAPTIC BACKGROUND CANVAS --------------------------------
     const neuralCanvas = document.getElementById('neural-bg-canvas');
     if (neuralCanvas) {
@@ -3012,7 +3031,11 @@ Fleet Resource Capabilities:
     // Uploaded PDFs never enter the client-side keyword vault.
     let uploadedDocuments = [];
     let activeDocumentId = null;
+    let documentUploadInProgress = false;
     const selectedDocumentIds = new Set();
+    // Used only to resolve follow-up references; the server still retrieves
+    // fresh PDF evidence for every turn.
+    const ragConversationHistory = [];
     async function refreshDocumentShelf() {
       const response = await fetch('/api/documents');
       const data = await response.json();
@@ -3032,14 +3055,17 @@ Fleet Resource Capabilities:
         const item = document.createElement('div'); item.className = 'ai-source-item';
         item.innerHTML = '<input class="source-select" type="checkbox" aria-label="Use this document for the next answer"><div class="source-icon">📕</div><div class="source-details"><div class="source-name"></div><div class="source-meta"></div></div><button type="button" class="btn-delete-source" title="Delete document and embeddings">&times;</button>';
         item.querySelector('.source-name').textContent = doc.filename;
-        item.querySelector('.source-meta').textContent = `${doc.pages} pages • ${doc.chunkCount} embedded chunks • ${(doc.size / 1024).toFixed(1)} KB`;
+        item.querySelector('.source-meta').textContent = `${doc.pages} pages • ${doc.chunkCount} embedded chunks • ${(doc.size / 1024).toFixed(1)} KB${doc.sourceType === 'managed' ? ' • managed source' : ''}`;
         const select = item.querySelector('.source-select');
         select.checked = selectedDocumentIds.has(doc.id);
         select.addEventListener('change', () => {
           if (select.checked) selectedDocumentIds.add(doc.id);
           else selectedDocumentIds.delete(doc.id);
         });
-        item.querySelector('button').addEventListener('click', async () => {
+        const deleteButton = item.querySelector('button');
+        if (!doc.deletable) {
+          deleteButton.remove();
+        } else deleteButton.addEventListener('click', async () => {
           await fetch(`/api/documents/${encodeURIComponent(doc.id)}`, { method: 'DELETE' });
           if (activeDocumentId === doc.id) activeDocumentId = null;
           selectedDocumentIds.delete(doc.id);
@@ -3049,10 +3075,18 @@ Fleet Resource Capabilities:
       });
     }
     processUploadedFile = async function (file) {
+      if (documentUploadInProgress) {
+        return;
+      }
       const bar = document.getElementById('ai-active-file-bar');
       const name = document.getElementById('ai-active-file-name');
+      const uploadButton = document.getElementById('btn-trigger-upload');
+      const maxBytes = 100 * 1024 * 1024;
+      if (file.size > maxBytes) { appendBotMessage('⚠️ This PDF exceeds the 100 MB upload limit. Use the ingestion command for larger documents.'); return; }
       if (bar && name) { name.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB) — indexing`; bar.style.display = 'flex'; }
       if (!file.name.toLowerCase().endsWith('.pdf')) { appendBotMessage('⚠️ Only PDF documents are currently supported.'); if (bar) bar.style.display = 'none'; return; }
+      documentUploadInProgress = true;
+      if (uploadButton) { uploadButton.disabled = true; uploadButton.textContent = 'PROCESSING…'; }
       try {
         const form = new FormData(); form.append('file', file);
         const response = await fetch('/api/documents/upload', { method: 'POST', body: form });
@@ -3063,7 +3097,11 @@ Fleet Resource Capabilities:
         await refreshDocumentShelf(); audio.chime();
         appendBotMessage(`**Document indexed:** \`${data.document.filename}\` — ${data.document.pages} pages, ${data.document.chunkCount} embedded chunks. Questions are answered only from retrieved evidence.`);
       } catch (error) { appendBotMessage(`⚠️ **Document processing failed:** ${error.message}`); }
-      finally { if (bar) bar.style.display = 'none'; }
+      finally {
+        documentUploadInProgress = false;
+        if (uploadButton) { uploadButton.disabled = false; uploadButton.innerHTML = '<span class="icon">⬆️</span> INGEST FILES'; }
+        if (bar) bar.style.display = 'none';
+      }
     };
 
     refreshDocumentShelf().catch(() => {});
@@ -3101,11 +3139,18 @@ Fleet Resource Capabilities:
         if (uploadedDocuments.length > 0) {
           const selectedIds = [...selectedDocumentIds];
           if (!selectedIds.length) throw new Error('Select at least one uploaded PDF using the source checkboxes.');
-          const response = await fetch('/api/rag/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: prompt, documentIds: selectedIds }) });
+          const response = await fetch('/api/rag/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: prompt, documentIds: selectedIds, history: ragConversationHistory.slice(-6) }) });
           const result = await response.json();
           if (!response.ok) throw new Error(result.error || 'Document question failed.');
           aiResponseText = result.answer;
           citations = result.citations || [];
+          const coreStatus = document.getElementById('ai-core-status-text');
+          if (coreStatus) {
+            const mode = result.generated ? `${String(result.provider || 'local').toUpperCase()} generated a grounded answer` : 'Source-only response; local generation was unavailable';
+            coreStatus.innerHTML = `<span class="status-pulse-dot"></span> ${mode}`;
+          }
+          ragConversationHistory.push({ question: prompt, answer: aiResponseText });
+          if (ragConversationHistory.length > 6) ragConversationHistory.shift();
         } else {
           // Preserve non-document simulation and routing assistance without using an API key.
           aiResponseText = generateBuiltinIntelligence(prompt, [], liveTelemetryContext);
@@ -3335,20 +3380,73 @@ Fleet Resource Capabilities:
     }
 
     function formatMarkdown(str) {
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/```c([\s\S]*?)```/g, '<div class="ai-code-block">$1</div>')
-        .replace(/```([\s\S]*?)```/g, '<div class="ai-code-block">$1</div>')
+      // The assistant response is untrusted text.  Escape first, then apply the
+      // intentionally small Markdown subset A.E.G.I.S. needs without inline
+      // colour styles that can become illegible when a theme changes.
+      const inline = (value) => escapeHTML(value)
         .replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-        .replace(/^### (.*$)/gim, '<h4 style="margin:10px 0 6px 0; color:#fff; font-family:var(--font-hud); letter-spacing:0.8px;">$1</h4>')
-        .replace(/^#### (.*$)/gim, '<h5 style="margin:8px 0 4px 0; color:#c4b5fd; font-family:var(--font-hud);">$1</h5>')
-        .replace(/^\* (.*$)/gim, '<li style="margin-left: 16px; margin-bottom: 4px;">$1</li>')
-        .replace(/\n\n/g, '<p></p>')
-        .replace(/\n/g, '<br>');
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+      const codeBlocks = [];
+      let source = String(str).replace(/```(?:[a-z0-9_-]+)?\n?([\s\S]*?)```/gi, (_, code) => {
+        const token = `@@ARES_CODE_${codeBlocks.length}@@`;
+        codeBlocks.push(`<pre class="ai-code-block"><code>${escapeHTML(code.trim())}</code></pre>`);
+        return token;
+      });
+
+      const lines = source.replace(/\r/g, '').split('\n');
+      const html = [];
+      let listType = null;
+      let tableRows = [];
+      const closeList = () => {
+        if (listType) html.push(`</${listType}>`);
+        listType = null;
+      };
+      const flushTable = () => {
+        if (!tableRows.length) return;
+        const [header, ...rows] = tableRows;
+        html.push(`<div class="ai-table-wrap"><table class="ai-markdown-table"><thead><tr>${header.map(cell => `<th>${inline(cell)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${inline(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+        tableRows = [];
+      };
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const next = lines[index + 1] || '';
+        if (/^\|/.test(line) && /^\|?\s*:?-{3,}/.test(next)) {
+          closeList();
+          tableRows.push(line.split('|').slice(1, -1).map(cell => cell.trim()));
+          index += 1;
+          while (index + 1 < lines.length && /^\|/.test(lines[index + 1])) {
+            index += 1;
+            tableRows.push(lines[index].split('|').slice(1, -1).map(cell => cell.trim()));
+          }
+          flushTable();
+          continue;
+        }
+        const heading = line.match(/^(#{1,4})\s+(.+)$/);
+        const unordered = line.match(/^[-*]\s+(.+)$/);
+        const ordered = line.match(/^\d+[.)]\s+(.+)$/);
+        if (heading) {
+          closeList();
+          const level = Math.min(heading[1].length + 2, 6);
+          html.push(`<h${level}>${inline(heading[2])}</h${level}>`);
+        } else if (unordered || ordered) {
+          const type = unordered ? 'ul' : 'ol';
+          if (listType !== type) { closeList(); html.push(`<${type}>`); listType = type; }
+          html.push(`<li>${inline((unordered || ordered)[1])}</li>`);
+        } else if (!line.trim()) {
+          closeList();
+        } else {
+          closeList();
+          html.push(`<p>${inline(line)}</p>`);
+        }
+      }
+      closeList();
+      let rendered = html.join('');
+      codeBlocks.forEach((block, index) => { rendered = rendered.replace(`@@ARES_CODE_${index}@@`, block); });
+      return rendered;
     }
 
     function escapeHTML(str) {
@@ -3510,6 +3608,7 @@ Fleet Resource Capabilities:
     // Clear Chat
     if (clearChatBtn) {
       clearChatBtn.addEventListener('click', () => {
+        ragConversationHistory.length = 0;
         const stream = document.getElementById('ai-messages-stream');
         if (stream) {
           stream.innerHTML = `
